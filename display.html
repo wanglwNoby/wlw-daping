@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta http-equiv="X-UA-Compatible" content="ie=edge">
+        <title>iBDMC DISPLAY</title>
+        <style>
+            *{margin:0;padding: 0}
+            html,body,.container{height: 100%;}
+            /* .content{height: 100%;box-sizing: border-box} */
+            .vue-grid-item {background: #666}
+        </style>
+    </head>
+    <body>
+        <div class="container" id="app">
+            <div id="content" ref="content" :style="{height:'100%', background: contentStyle, padding: contentPadding, boxSizing: 'border-box'}" ref="contentHeight">
+                <grid-layout :layout="layout" :margin="marginSize" :col-num="colNum" :row-height="rowHeight" :auto-size="true" :is-draggable="false" :is-resizable="false" :vertical-compact="true" :use-css-transforms="true">
+                    <grid-item v-for="(item,layout_index) in layout"
+                    :is-resizable="false" :x="item.x" :y="item.y" :w="item.w" :h="item.h" :i="item.i"  :style="{backgroundColor:item.bgstyle.bgcolorstyle,backgroundImage:item.bgstyle.bgimagestyle,backgroundSize:'cover'}">
+                    <component v-bind="item.binddata" v-for="item in item.componentList" v-bind:is="item.component"></component>
+                    <component v-if="item1.echartsName == 'eChartsTemplate'" v-bind:e-charts-option="item1.echartsData" :echartid= "item.i" v-for="item1 in item.echartsList" v-bind:is="item1.echartsName"></component>
+                    <component v-else v-bind="item1.echartsData" :height= "item.h" v-for="item1 in item.echartsList" v-bind:is="item1.echartsName"></component>
+                </grid-item>
+                </grid-layout>
+            </div>
+        </div>
+        <script src="./static/javascripts/vue.min.js"></script>
+        <script src="./static/javascripts/jquery-3.2.1.min.js"></script>
+        <script src="./static/javascripts/echarts.min.js"></script>
+        <script src="./static/javascripts/vue-grid-layout.min.js"></script>
+        <script src="./static/javascripts/components.js"></script>
+        <script src="./static/javascripts/axios.js"></script>
+        <script src="../config/default.js"></script>
+        <script>
+            Vue.prototype.$axios = axios;
+            var app = new Vue({
+                el:'#app',
+                data:{
+                    contentStyle:'',
+                    marginSize:[10,10],
+                    rowHeight:20,
+                    colNum:24,
+                    contentPadding:'20px 20px',
+                    layout:[]
+                },
+                components:{
+                    "GridLayout": VueGridLayout.GridLayout,
+                    "GridItem": VueGridLayout.GridItem,
+                    "cornerTemplate":cornerTemplate,
+                    "titleTemplate":titleTemplate,
+                    "borderTemplate":borderTemplate,
+                    "backgroundTemplate":backgroundTemplate
+                },
+                watch:{
+                    layout:{
+                        handler:function(newVal,oldVal){
+                            
+                        },
+                        deep:true
+                    }
+                }
+            })
+            //获取需要渲染的数据
+            function getTemplateData(){
+                console.log()
+                axios.get(Config.api+'/dashboard/list').then(res => {
+                    let templateList = res.data.data[1];//第一个模板
+                    console.log(templateList);
+                    app.rowHeight = templateList.data.config.row_height;
+                    app.marginSize = templateList.data.config.margin_size;
+                    app.layout = templateList.data.layout//layout数据
+                    app.$refs.content.style.background = templateList.root.background;//容器背景色
+                })
+            }
+        </script>
+    </body>
+</html>

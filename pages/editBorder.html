@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta http-equiv="X-UA-Compatible" content="ie=edge">
+        <link rel="stylesheet" href="../static/stylesheets/page.css">
+        <link rel="stylesheet" href="../static/plugin/element-2.3.9/index.css">
+        <link rel="stylesheet" href="../static/stylesheets/edit-border.css">
+        <style>
+            .el-color-picker{vertical-align: top}
+            .el-upload-list{width: 200px;}
+            .upload-demo{display: inline-block;vertical-align: top}
+            .recent-image-list {
+                display: flex;
+                width: 362px;
+                margin-left: 44px;
+                flex-wrap: wrap;
+            }
+            .uploadRecent {
+                width: 95px;
+                height: 92px;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                position: relative;
+                margin: 2px;
+            }
+            .uploadRecent i {
+                position: absolute;
+                background: red;
+                border-radius: 10px;
+                top: 0;
+                right: 0;
+            }
+        </style>
+    </head>
+    <body>
+        <div id="borderApp" class="section">
+            <div class="content">
+                <div class="content-body">
+                    <ul class="classify">
+                        <li v-for="config in configClassify"  @click="selectConfig=config.id" :class="{active:selectConfig==config.id}">{{config.name}}</li>
+                    </ul>
+                    <div class="detail-config">
+                        <div class="config-left" v-show="selectConfig=='title'">
+                            <p>
+                                <label>是否显示：</label>
+                                <el-switch v-model="titleCfg.show" active-color="#2d8cf0" inactive-color="#ccc" active-value="block" inactive-value="none"></el-switch>
+                            </p>
+                            <p>
+                                <label>标题内容：</label>
+                                <input type="text" class="form-input" v-model="titleCfg.text" :disabled="titleCfg.show =='none'">
+                            </p>
+                            <p>
+                                <label>文字大小：</label>
+                                <input type="number" min="1" class="form-input" v-model="titleCfg.fontsize" :disabled="titleCfg.show =='none'">
+                            </p>
+                            <p>
+                                <label>字体选择：</label>
+                                <select class="form-input" v-model="titleCfg.fontfamily" :disabled="titleCfg.show=='none'">
+                                    <option value="Microsoft YaHei">微软雅黑</option>
+                                    <option value="SimSun">宋体</option>
+                                    <option value="KaiTi">楷体</option>
+                                </select>
+                            </p>
+                            <p>
+                                <label>文字颜色：</label>
+                                <input type="text" class="form-input" readonly v-model="titleCfg.textcolor" :disabled="titleCfg.show =='none'">
+                                <el-color-picker v-model="titleCfg.textcolor" show-alpha size="mini" :disabled="titleCfg.show =='none'"></el-color-picker>
+                            </p>
+                            <p>
+                                <label>边框类型：</label>
+                                <select class="form-input" v-model="titleCfg.bordertype" :disabled="titleCfg.show =='none'">
+                                    <option value="allborder">全边框</option>
+                                    <option value="leftright">左右边框</option>
+                                    <option value="topbottom">上下边框</option>
+                                </select>
+                            </p>
+                            <p>
+                                <label>边框颜色：</label>
+                                <input type="text" readonly class="form-input" v-model="titleCfg.bordercolor" :disabled="titleCfg.show =='none'">
+                                <el-color-picker v-model="titleCfg.bordercolor" show-alpha size="mini" :disabled="titleCfg.show =='none'"></el-color-picker>
+                            </p>
+                            <p>
+                                <label>边框宽度：</label>
+                                <input type="number" min="0" class="form-input" v-model="titleCfg.borderwidth" :disabled="titleCfg.show =='none'">
+                            </p>
+                            <p>
+                                <label>背景颜色：</label>
+                                <input type="text" readonly class="form-input" v-model="titleCfg.bgcolor" :disabled="titleCfg.show =='none'">
+                                <el-color-picker v-model="titleCfg.bgcolor" show-alpha size="mini" :disabled="titleCfg.show =='none'"></el-color-picker>
+                            </p>
+                            <p>
+                                <label>标题宽度：</label>
+                                <input type="number" min="1" class="form-input" v-model="titleCfg.width" :disabled="titleCfg.show =='none'">
+                            </p>
+                            <p>
+                                <label>标题高度：</label>
+                                <input type="number" min="1" class="form-input" v-model="titleCfg.height" :disabled="titleCfg.show =='none'">
+                            </p>
+                        </div>
+                        <div class="config-left" v-show="selectConfig=='corner'">
+                            <p>
+                                <label>是否显示：</label>
+                                <el-switch v-model="cornerCfg.show" active-color="#2d8cf0" inactive-color="#ccc" active-value="block" inactive-value="none"></el-switch>
+                            </p>
+                            <p v-show="cornerCfg.show=='none'">
+                                <label>是否折角：</label>
+                                <el-switch v-model="cornerCfg.foldingshow" active-color="#2d8cf0" inactive-color="#ccc" active-value="block" inactive-value="none"></el-switch> 
+                            </p>
+                            <p v-show="cornerCfg.show=='none' && cornerCfg.foldingshow=='block'">
+                                <label>折角类型：</label>
+                                <select v-model="cornerCfg.foldingtype" class="form-input">
+                                    <option value="allcorner">全部</option>
+                                    <option value="lefttop">左上和右下</option>
+                                    <option value="bottomleft">左下和右上</option>
+                                </select>
+                            </p>
+                            <p v-show="cornerCfg.show=='none' && cornerCfg.foldingshow=='block'">
+                                <label>折角颜色：</label>
+                                <input readonly type="text" class="form-input" v-model="cornerCfg.foldingcolor">
+                                <el-color-picker v-model="cornerCfg.foldingcolor" show-alpha size="mini"></el-color-picker>
+                            </p>
+                            <p v-show="cornerCfg.show=='none' && cornerCfg.foldingshow=='block'">
+                                <label>折角大小：</label>
+                                <input type="number" min="0" class="form-input" v-model="cornerCfg.length">
+                            </p>
+                            <p v-show="cornerCfg.show=='block'">
+                                <label>类型：</label>
+                                <select v-model="cornerCfg.type" class="form-input">
+                                    <option value="allcorner">全部</option>
+                                    <option value="lefttop">左上和右下</option>
+                                    <option value="bottomleft">左下和右上</option>
+                                </select>
+                            </p>
+                            <p v-show="cornerCfg.show=='block'">
+                                <label>长度：</label>
+                                <input type="number" min="0" class="form-input" v-model="cornerCfg.width">
+                            </p>
+                            <p v-show="cornerCfg.show=='block'">
+                                <label>宽度：</label>
+                                <input type="number" min="0" class="form-input" v-model="cornerCfg.height">
+                            </p>
+                            <p v-show="cornerCfg.show=='block'">
+                                <label>颜色：</label>
+                                <input readonly type="text" class="form-input" v-model="cornerCfg.background">
+                                <el-color-picker v-model="cornerCfg.background" show-alpha size="mini" :disabled="cornerCfg.show=='none'"></el-color-picker>
+                            </p>
+                        </div>
+                        <div class="config-left" v-show="selectConfig=='border'">
+                            <p>
+                                <label>是否显示：</label>
+                                <el-switch v-model="borderCfg.show" active-color="#2d8cf0" inactive-color="#ccc" active-value="block" inactive-value="none"></el-switch>
+                            </p>
+                            <p>
+                                <label>边框弧度：</label>
+                                <input type="number" min="0" class="form-input" v-model="borderCfg.radius" :disabled="borderCfg.show=='none'">
+                            </p>
+                            <p>
+                                <label>边框宽度：</label>
+                                <input type="number" min="0" class="form-input" v-model="borderCfg.width" :disabled="borderCfg.show=='none'">
+                            </p>
+                            <p>
+                                <label>边框颜色：</label>
+                                <input type="text" class="form-input" v-model="borderCfg.color" :disabled="borderCfg.show=='none'">
+                                <el-color-picker v-model="borderCfg.color" show-alpha size="mini" :disabled="borderCfg.show=='none'"></el-color-picker>
+                            </p>
+                            <p>
+                                <label>阴影颜色：</label>
+                                <input type="text" class="form-input" v-model="borderCfg.shadow" :disabled="borderCfg.show=='none'">
+                                <el-color-picker v-model="borderCfg.shadow" show-alpha size="mini" :disabled="borderCfg.show=='none'"></el-color-picker>
+                            </p>
+                        </div>
+                        <div class="config-left" v-show="selectConfig=='background'">
+                            <p>
+                                <label>背景类型：</label>
+                                <select v-model="bgCfg.colorstyle" class="form-label form-input">
+                                    <option value="prue">纯色</option>
+                                    <option value="grident">渐变色</option>
+                                    <option value="bgimg">背景图</option>
+                                </select>
+                            </p>
+                            <p v-show="bgCfg.colorstyle=='prue'">
+                                <label for="">选择背景：</label>
+                                <input type="text" class="form-input" v-model="bgCfg.color" readonly>
+                                <el-color-picker v-model="bgCfg.color" show-alpha size="mini"></el-color-picker>
+                            </p>
+                            <p v-show="bgCfg.colorstyle=='grident'">
+                                <label>渐变方向：</label>
+                                <select v-model="bgCfg.lineardirector" class="form-input">
+                                    <option value="0">由上到下</option>
+                                    <option value="1">由左到右</option>
+                                    <option value="2">由左上到右下</option>
+                                    <option value="3">由左下到右上</option>
+                                </select>
+                            </p>
+                            <p v-show="bgCfg.colorstyle=='bgimg'" style="height:150px">
+                                <label>上传图片：</label>
+                                <el-upload class="upload-demo" ref="upload" name="bgImage" limit="1" :action="api + '/dashboard/upload'" :auto-upload="false"
+                                :on-change="onUpload" list-type="picture">
+                                <el-button slot="trigger" size="small" type="primary">选取文件</el-button>
+                                </el-upload>
+                            </p>
+                            <p v-show="bgCfg.colorstyle=='bgimg'">
+                                <label>最近上传：</label>
+                                <div style="height: 196px;overflow: auto;margin-left:44px" class="recent-image-list" v-show="bgCfg.colorstyle=='bgimg'">
+                                    <div v-for="item in recentImageList" class="uploadRecent">
+                                      <img @click="checkRecent(item.filename)" :class="{'active-recent': bgImageUrl == item.filename}" width="80px" height="80px"
+                                        :src="api + '/' + item.filename" alt="">
+                                      <i class="el-icon-close" @click="deleteRecentImage(item._id, item.filename)"></i>
+                                    </div>
+                                </div>
+                            </p>
+                            <p v-show="bgCfg.colorstyle=='grident'">
+                                <label>颜色1：</label>
+                                <input type="text" class="form-input" readonly v-model="bgCfg.linecolor[0]">
+                                <el-color-picker v-model="bgCfg.linecolor[0]" size="mini" show-alpha></el-color-picker>
+                            </p>
+                            <p v-show="bgCfg.colorstyle=='grident'">
+                                <label>颜色2：</label>
+                                <input type="text" class="form-input" readonly v-model="bgCfg.linecolor[1]">
+                                <el-color-picker v-model="bgCfg.linecolor[1]" size="mini" show-alpha></el-color-picker>
+                            </p>
+                            <p v-show="bgCfg.colorstyle=='grident'">
+                                <label>颜色3：</label>
+                                <input type="text" class="form-input" readonly v-model="bgCfg.linecolor[2]">
+                                <el-color-picker v-model="bgCfg.linecolor[2]" size="mini" show-alpha></el-color-picker>
+                            </p>
+                            <p v-show="bgCfg.colorstyle=='grident'">
+                                <label>颜色4：</label>
+                                <input type="text" class="form-input" readonly v-model="bgCfg.linecolor[3]">
+                                <el-color-picker v-model="bgCfg.linecolor[3]" size="mini" show-alpha></el-color-picker>
+                            </p>
+                        </div>
+                        <div class="config-preview">
+                            <p class="header">效果预览<span></span></p>
+                            <div class="preview">
+                                <div class="preview-box">
+                                        <four-corner v-bind="cornerCfg"></four-corner>
+                                        <title-template v-bind="titleCfg"></title-template>
+                                        <border-template v-bind="borderCfg"></border-template>
+                                        <background-template v-bind="bgCfg" v-bind:bgimgurl = 'bgImageUrl'  v-on:getbgcolorstyle ="getbgcolorstyle" v-on:getbgimagestyle = "getbgimagestyle"></background-template>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="detail-right" style="flex:0 0 85px;display: none;"></div>
+                </div>
+            </div>
+            <div class="footer">
+                <span @click="closeLayer" class="btn">取消</span>
+                <span @click="saveBorderConfig" class="btn">确认</span>
+            </div>
+        </div>
+        <script src="../static/javascripts/vue.min.js"></script>
+        <script src="../static/javascripts/axios.js"></script>
+        <script src="../static/plugin/element-2.3.9/index.js"></script>
+        <script src="../config/default.js"></script>
+        <script>
+            // 只有角的模板一
+            let cornerTemplate = Vue.extend({
+                template:`<div :style="{position:'absolute',left:0,top:0,right:0,bottom:0,zIndex:3}">
+                    <div :style="{height:'100%',float:'left',display:show}">
+                        <div :style="{position:'absolute',left:0,top:0,display:topleft}">
+                            <div :style="{'position':'absolute','width':width+'px','height':height+'px',backgroundColor:background,'left':0,'top':0}"></div>
+                            <div :style="{'position':'absolute','left':0,'top':0,'width':height+'px','height':width+'px',backgroundColor:background}"></div>
+                        </div>
+                        <div :style="{position:'absolute',right:0,top:0,display:bottomleft}">
+                            <div :style="{'position':'absolute','width':width+'px','height':height+'px',backgroundColor:background,'right':0,'top':0}"></div>
+                            <div :style="{'position':'absolute','right':0,'top':0,'width':height+'px','height':width+'px',backgroundColor:background}"></div>
+                        </div>
+                        <div :style="{position:'absolute',right:0,bottom:0,display:topleft}">
+                            <div :style="{'position':'absolute','width':width+'px','height':height+'px',backgroundColor:background,'right':0,'bottom':0}"></div>
+                            <div :style="{'position':'absolute','right':0,'bottom':0,'width':height+'px','height':width+'px',backgroundColor:background}"></div>
+                        </div>
+                        <div :style="{position:'absolute',left:0,bottom:0,display:bottomleft}">
+                            <div :style="{'position':'absolute','width':width+'px','height':height+'px',backgroundColor:background,'left':0,'bottom':0}"></div>
+                            <div :style="{position:'absolute','left':0,'bottom':0,'width':height+'px','height':width+'px',backgroundColor:background}"></div>
+                        </div>
+                    </div>
+                    <div :style="{height:'100%',float:'left',display:foldingshow}">
+                        <div :style="{position:'absolute',left:0,top:0,display:foldingtop,width:length+'px',height:length+'px',backgroundImage:'linear-gradient(135deg,'+foldingcolor+' 50%,transparent 0)'}"></div>
+                        <div :style="{position:'absolute',right:0,bottom:0,display:foldingtop,width:length+'px',height:length+'px',backgroundImage:'linear-gradient(-45deg,'+foldingcolor+' 50%,transparent 0)'}"></div>
+                        <div :style="{position:'absolute',left:0,bottom:0,display:foldingbottom,width:length+'px',height:length+'px',backgroundImage:'linear-gradient(45deg,'+foldingcolor+' 50%,transparent 0)'}"></div>
+                        <div :style="{position:'absolute',right:0,top:0,display:foldingbottom,width:length+'px',height:length+'px',backgroundImage:'linear-gradient(225deg,'+foldingcolor+' 50%,transparent 0)'}"></div>
+                    </div>
+                </div>`,
+                data:function(){
+                    return {
+                        topleft:'block',
+                        bottomleft:'block',
+                        foldingtop:'block',
+                        foldingbottom:'block'
+                    }
+                },
+                created:function(){
+                    if(this.type=='allcorner'){
+                        this.topleft = 'block';
+                        this.bottomleft = 'block';
+                    }else if(this.type=='lefttop'){
+                        this.topleft = 'block';
+                        this.bottomleft = 'none';
+                    }else{
+                        this.topleft = 'none';
+                        this.bottomleft = 'block';
+                    };
+                    if(this.foldingtype=='allcorner'){
+                        this.foldingtop = 'block';
+                        this.foldingbottom = 'block';
+                    }else if(this.foldingtype=='lefttop'){
+                        this.foldingtop = 'block';
+                        this.foldingbottom = 'none';
+                    }else{
+                        this.foldingtop = 'none';
+                        this.foldingbottom = 'block';
+                    }
+                },
+                watch:{
+                    type:function(newVal,oldVal){
+                        if(newVal=='allcorner'){
+                            this.topleft = 'block';
+                            this.bottomleft = 'block';
+                        }else if(newVal=='lefttop'){
+                            this.topleft = 'block';
+                            this.bottomleft = 'none';
+                        }else{
+                            this.topleft = 'none';
+                            this.bottomleft = 'block';
+                        }
+                    },
+                    foldingtype:function(newVal,oldVal){
+                        if(newVal=='allcorner'){
+                            this.foldingtop = 'block';
+                            this.foldingbottom = 'block';
+                        }else if(newVal=='lefttop'){
+                            this.foldingtop = 'block';
+                            this.foldingbottom = 'none';
+                        }else{
+                            this.foldingtop = 'none';
+                            this.foldingbottom = 'block';
+                        }
+                    }
+                },
+                props:['width','height','background','show','type','foldingshow','deg','length','foldingcolor','foldingtype']
+            });
+            let titleTemplate = Vue.extend({
+                template:`<div style="position:absolute;left:0;top:0;right:0;bottom:0;zIndex:5">
+                    <div :style="{position:'absolute','left':'50%','top':0,textAlign:'center','transform':'translate(-50%,-50%)',display:show,fontSize:fontsize+'px',fontFamily:fontfamily,color:textcolor,borderColor:bordercolor,borderWidth:borderwidth+'px',backgroundColor:bgcolor,width:width+'px',height:height+'px',lineHeight:height+'px',borderLeftStyle:borderleft,borderRightStyle:borderleft,borderTopStyle:bordertop,borderBottomStyle:bordertop,boxShadow:bordercolor+' 0 0 6px 3px inset'}">{{text}}</div>
+                </div>`,
+                data:function(){
+                    return {
+                        borderleft:'solid',
+                        bordertop:'solid'
+                    }
+                },
+                created:function(){
+                    if(this.bordertype=='allborder'){
+                        this.borderLeft = 'solid';
+                        this.borderTop = 'solid';
+                    }else if(this.bordertype=='leftright'){
+                        this.borderLeft = 'solid';
+                        this.borderTop = 'none';
+                    }else{
+                        this.borderLeft = 'none';
+                        this.borderTop = 'solid';
+                    }
+                },
+                watch:{
+                    bordertype:function(newVal,oldVal){
+                        if(newVal=="allborder"){
+                            this.borderleft = 'solid';
+                            this.bordertop = 'solid';
+                        }else if(newVal=="leftright"){
+                            this.borderleft = 'solid';
+                            this.bordertop = 'none';
+                        }else{
+                            this.borderleft = 'none';
+                            this.bordertop = 'solid';
+                        }
+                    }
+                },
+                props:['show','text','fontsize','fontfamily','textcolor','bordercolor','bgcolor','width','height','bordertype','borderwidth','show']
+            });
+            let borderTemplate = Vue.extend({
+                template:`<div :style="{position:'absolute',zIndex:'2',left:0,top:0,right:0,bottom:0,border:'1px solid transparent',borderColor:color,borderRadius:radius+'px',borderWidth:width+'px',display:show,boxShadow:shadow+' 0 0 6px 3px inset'}"></div>`,
+                data:function(){
+                    return {}
+                },
+                props:['color','radius','width','show','shadow']
+            });
+            let backgroundTemplate = Vue.extend({
+                template:`<div :style="{position:'absolute',zIndex:'0',left:0,top:0,right:0,bottom:0,backgroundSize:'cover',backgroundColor:bgcolorstyle,backgroundImage:bgimagestyle}"></div>`,
+                data:function(){
+                    return {
+                        direction:'',
+                    }
+                },
+                props:['colorstyle','color','lineardirector','linecolor','show','bgimgurl'],
+                created:function(){//根据初始值设置渐变角度，颜色类型，颜色样式
+                    if(this.lineardirector=='0'){
+                        this.direction = 'to bottom'
+                    }else if(this.lineardirector=='1'){
+                        this.direction = 'to right'
+                    }else if(this.lineardirector=='2'){
+                        this.direction = 'to right bottom'
+                    }else{
+                        this.direction = 'to right top'
+                    }
+                    if(this.colorstyle == 'prue'){
+                        this.bgcolorstyle = this.color
+                    }
+                    if(this.colorstyle == 'grident'){
+                        this.bgimagestyle = 'linear-gradient('+this.direction+','+this.linecolor.join(',')+')'
+                    }
+                    if(this.colorstyle == 'bgimg'){
+                        this.bgimagestyle = 'url('+this.bgimgurl+')'
+                    }
+                    this.$emit('getbgcolorstyle',this.bgcolorstyle);
+                    this.$emit('getbgimagestyle',this.bgimagestyle);
+                },
+                watch:{
+                    lineardirector:function(newVal,oldVal){//映射转换为css样式
+                        if(newVal=='0'){
+                            this.direction = 'to bottom'
+                        }else if(newVal=='1'){
+                            this.direction = 'to right'
+                        }else if(newVal=='2'){
+                            this.direction = 'to bottom right'
+                        }else{
+                            this.direction = 'to top right'
+                        }
+                    },
+                    bgcolorstyle:function(newVal){
+                        this.$emit('getbgcolorstyle',newVal);
+                    },
+                    bgimagestyle:function(newVal){
+                        this.$emit('getbgimagestyle',newVal);
+                    }
+                },
+                computed:{
+                    bgcolorstyle:function(){//backgroundcolor颜色样式
+                        if(this.colorstyle == 'prue'){
+                            return this.color
+                        }else{
+                            return ''
+                        }
+                    },
+                    bgimagestyle:function(){//backgroundimage样式
+                        if(this.colorstyle == 'prue'){
+                            return '' 
+                        }else if(this.colorstyle == 'grident'){
+                            return 'linear-gradient('+this.direction+','+this.linecolor.join(',')+')'
+                        }else{
+                            return 'url('+this.bgimgurl+')'
+                        }
+                    }
+                }
+            })
+            let borderApp = new Vue({
+                el:"#borderApp",
+                data:{
+                    api:Config.api,
+                    bgImageUrl:'',
+                    param: new FormData(),  // FromData 表单数据
+                    recentImageList: [],   // 最近上传图片列表
+                    curRecent: '',   // 选中图片的 filename
+                    uploadImg: '',   // 上传的图片的地址
+                    bgcolorstyle:'',
+                    bgimagestyle:'',
+                    cornerCfg:{//角
+                        background:'#fff',
+                        width:'15',
+                        height:'5',
+                        show:'block',
+                        type:'allcorner',
+                        foldingshow:'none',
+                        length:'30',
+                        foldingcolor:'#3B5064',
+                        foldingtype:'allcorner'
+                    },
+                    titleCfg:{//标题
+                        show:'block',
+                        text:'标题',
+                        fontsize:'14',
+                        fontfamily:'Microsoft YaHei',
+                        textcolor:'#ffffff',
+                        bordercolor:'#2047a0',
+                        bgcolor:'#183162',
+                        width:'80',
+                        height:'30',
+                        bordertype:'allborder',
+                        borderwidth:'2'
+                    },
+                    borderCfg:{//边框
+                        show:'block',
+                        color:'#2047a0',
+                        radius:'8',
+                        width:'2',
+                        shadow:'#2047a0'
+                    },
+                    bgCfg:{//背景
+                        show:'block',
+                        colorstyle: 'prue',  // 0 - 纯色 / 1 - 渐变色
+                        color: '#183162',   // 纯色背景色 rgba
+                        lineardirector: '0',  // 渐变色 方向
+                        linecolor: [],   // 渐变色  颜色数组
+                    },
+                    configClassify:[
+                        {name:'标题',id:'title'},
+                        {name:'角',id:'corner'},
+                        {name:'边',id:'border'},
+                        {name:'背景',id:'background'}
+                    ],
+                    selectConfig:'title',
+                    
+                },
+                components:{
+                    'four-corner':cornerTemplate,
+                    'title-template':titleTemplate,
+                    'border-template':borderTemplate,
+                    'background-template':backgroundTemplate
+                },
+                created:function(){
+                    let componentList = window.parent.app.readComponentCfg();
+                    if(!componentList){
+                        return 
+                    }
+                    componentList.forEach(component => {
+                        if(component.component=='cornerTemplate'){
+                            this.cornerCfg = component.binddata;
+                        }else if(component.component=='titleTemplate'){
+                            this.titleCfg = component.binddata;
+                        }else if(component.component=='borderTemplate'){
+                            this.borderCfg = component.binddata;
+                        }else if(component.component=='backgroundTemplate'){
+                            this.bgCfg = component.binddata;
+                        }
+                    });
+                },
+                mounted:function(){
+                     // 请求最近上传的图片 最多六张
+                     axios.get(this.api + '/recent_image/list/1' )
+                    .then(function (res) {
+                        borderApp.recentImageList = res.data.data.slice(-6)
+                        // Vue.nextTick(function (params) {
+                        // if(this.getUrlQuery('bg')) {
+                        //     this.bgImageUrl = this.getUrlQuery('bg')
+                        //     this.refreshViewBox()
+                        // }
+                        // })
+                    })
+                    .catch(function (error) {
+                        console.log(error);
+                    });
+                },
+                methods:{
+                    checkRecent: function (filename) {//选择图片
+                        if(this.bgImageUrl == filename) { // 两次点击同一图片，则取消选中，路径更改为上传图片的路径
+                            this.bgImageUrl = this.api+'/'+this.uploadImg
+                        } else {
+                            this.bgImageUrl = this.api+'/'+filename
+                        }
+                    },
+                    deleteRecentImage: function (_id, filename) {//删除已上传的文件
+                        var _this = this
+                        axios.get(_this.api + '/recent_image/delete/' + _id + '/' + filename).then(function (response) {
+                            var res = response.data
+                            if(res.result) {
+                                for (var i = 0; i < _this.recentImageList.length; i++) {
+                                if (_this.recentImageList[i]._id == _id) {
+                                    _this.recentImageList.splice(i, 1)
+                                    break;
+                                }
+                                }
+                            } else {
+                                console.log('删除失败')
+                            }
+                        })
+                    },
+                    onUpload:function(file,fileList){
+                        this.bgImageUrl = file.url  // 通过watch 来更新视图
+                        this.uploadImg = file.url  // 临时存储上传的图片的路径
+                        this.param.append('ibdmc', file.raw, file.name)
+                    },
+                    getbgcolorstyle:function(data){
+                        this.bgcolorstyle = data;
+                    },
+                    getbgimagestyle:function(data){
+                        this.bgimagestyle = data;
+                    },
+                    closeLayer:function(){
+                        var index = parent.layer.getFrameIndex(window.name);
+                        parent.layer.close(index); 
+                    },
+                    toggleActive:function(num){
+                        this.header = num;
+                    },
+                    saveBorderConfig:function(){
+                        console.log('save');
+                        // 数据暂存在localstroge
+                        localStorage.setItem('cornerCfg',JSON.stringify(this.cornerCfg));
+                        localStorage.setItem('titleCfg',JSON.stringify(this.titleCfg));
+                        localStorage.setItem('borderCfg',JSON.stringify(this.borderCfg));
+                        localStorage.setItem('bgCfg',JSON.stringify(this.bgCfg));
+
+                        let index = parent.layer.getFrameIndex(window.name);
+                        parent.layer.close(index);
+                        window.parent.app.addComponentTemplate('cornerTemplate',this.cornerCfg);
+                        window.parent.app.addComponentTemplate('titleTemplate',this.titleCfg);
+                        window.parent.app.addComponentTemplate('borderTemplate',this.borderCfg);
+                        window.parent.app.addComponentTemplate('backgroundTemplate',this.bgCfg);
+                        window.parent.app.addComponentTemplate('bgstyle',{bgcolorstyle:this.bgcolorstyle,bgimagestyle:this.bgimagestyle,bgurl:this.bgImageUrl});
+                        this.param.append('type',1);
+                        axios.post(this.api + '/recent_image/upload',this.param,{headers: {
+                            'Content-Type': 'multipart/form-data'
+                            }
+                        })
+                    }
+                }
+            })
+        </script>
+    </body>
+</html>

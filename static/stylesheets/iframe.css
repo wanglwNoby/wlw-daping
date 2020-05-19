@@ -1,0 +1,406 @@
+* {
+    margin: 0;
+    padding: 0;
+}
+html, body {
+    height: 100%;
+}
+body {
+    font-family: 'Source Sans Pro', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    color: white;
+    background-color: #44515f;
+    font-weight: 200;
+    font-size: 14px;
+}
+body::-webkit-scrollbar {
+    display: none;
+}
+section {
+
+}
+thead{
+    background-color: #22303e;
+}
+table {
+    background-color: transparent;
+    border-spacing: 0;
+    border-collapse: collapse;
+}
+.emp-table {
+    color: #b8c7ce;
+    border: 1px solid #454b5f;
+}
+.table {
+    width: 100%;
+    max-width: 100%;
+    margin-bottom: 10px;
+    border: none;
+}
+.table tbody {
+    overflow-y: auto;
+}
+.table>tbody>tr>td{
+    white-space: nowrap;
+    font-size: 12px;
+    background-color: #2c3e50;
+    padding: 10px;
+    border-bottom: 1px solid #4e4e61;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.table>thead>tr>th {
+    padding: 5px 5px;
+    outline: none;
+    white-space: nowrap;
+    font-weight: normal;
+    text-align: left;
+    font-size: 13px;
+    border-bottom: 2px solid #273646;
+    border: none;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/*配置页面*/
+.config {
+
+}
+.configList {
+    display: flex;
+    /*margin-bottom: 10px;*/
+    background-color: #2c3e50;
+    margin: 5px;
+}
+.configItem {
+    display: flex;
+}
+.iframeInput {
+    width: 200px;
+    height: 24px;
+    border-radius: 5px;
+    border: none;
+    background: #44515f;
+    color: white;
+    padding: 0 5px;
+}
+.itemLabel {
+    width: 100px;
+    text-align: right;
+    padding: 5px;
+    line-height: 25px;
+    font-size: 13px;
+}
+.itemInput {
+    width: 300px;
+    text-align: left;
+    padding: 5px;
+}
+
+/*分页*/
+.page {
+    font-weight: 900;
+    height: 40px;
+    text-align: right;
+    color: #c7cfd6;
+    margin: 20px auto 0;
+    font-weight: 100;
+}
+
+.pagelist {
+    height: 50px;
+    line-height: 50px;
+}
+
+.pagelist span {
+    font-size: 14px;
+}
+
+.pagelist .jump {
+    border: 1px solid #687588;
+    padding: 5px 8px;
+    -webkit-border-radius: 4px;
+    -moz-border-radius: 4px;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-left: 5px;
+}
+
+.pagelist .bgprimary {
+    cursor: default;
+    color: #fff;
+    background: #337ab7;
+    border-color: #337ab7;
+}
+
+.jumpinp input {
+    width: 55px;
+    height: 26px;
+    font-size: 13px;
+    border: 1px solid #687588;
+    -webkit-border-radius: 4px;
+    -moz-border-radius: 4px;
+    border-radius: 4px;
+    text-align: center;
+    background: #44515f;
+    color: white;
+}
+
+.ellipsis {
+    padding: 0px 8px;
+}
+
+.jumppoint {
+    margin-left: 30px;
+}
+
+.pagelist .gobtn {}
+
+.bgprimary {
+    cursor: default;
+    color: #fff;
+    background: #337ab7;
+    border-color: #337ab7;
+}
+
+/*弹窗 modal*/
+.coverModal {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10;
+}
+.filterModal {
+    box-shadow: 0px 2px 20px gray;
+    width: 800px;
+    height: 400px;
+    background-color: #2c3e50;
+    border-radius: 5px;
+}
+.modalHead {
+    height: 35px;
+    background-color: #273646;
+    display: flex;
+    align-items: center;
+    padding: 0 10px;
+    border-radius: 5px;
+}
+.modalContent {
+    height: 305px;
+    padding: 10px;
+}
+.modalFoot {
+    height: 40px;
+    display: flex;
+    padding: 0 10px;
+    justify-content: flex-end;
+}
+.modalBtn {
+    border: 1px solid #6a788a;
+    width: 60px;
+    height: 25px;
+    text-align: center;
+    line-height: 25px;
+    border-radius: 5px;
+    margin: 0 5px;
+    font-size: 12px;
+    cursor: pointer;
+}
+.modalRow {
+    display: flex;
+    flex-direction: column;
+    position: relative;
+}
+.modalItem {
+    display: flex;
+    flex-grow: 1;
+    padding: 10px;
+}
+.modalLabel {
+    width: 80px;
+    text-align: right;
+    padding: 0 10px;
+    font-size: 12px;
+    line-height: 23px;
+}
+.modalInput {
+    background: #44515f;
+    display: flex;
+    flex: 1;
+    margin-right: 51px;
+    border-radius: 3px;
+}
+.checkBoxList {
+    position: absolute;
+    left: 110px;
+    top: 38px;
+    z-index: 21;
+}
+.checkBoxList ul {
+    list-style: none;
+    border-radius: 3px;
+    border: 1px solid #788492;
+    border-top: none;
+    max-height: 150px;
+    background: #363f4c;
+    overflow: auto;
+}
+.checkBoxList li {
+    width: 607px;
+    height: 28px;
+    background: #344252;
+    border-bottom: 1px dashed #3d4c5f;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+}
+.checkBoxList li input {
+    margin: 8px 10px 5px 10px;
+}
+.modalInput input,select {
+    width: 100%;
+    height: 28px;
+    border-radius: 5px;
+    border: none;
+    background: #44515f;
+    color: white;
+    padding: 0 5px;
+}
+.modalInput select {
+    width: 210px;
+}
+select:disabled {
+    background: #70777d;
+    cursor:not-allowed;
+}
+input:disabled {
+    background: #70777d;
+    cursor:not-allowed;
+}
+.modalInput i {
+    display: inline-block;
+    width: 30px;
+    height: 28px;
+    line-height: 28px;
+    text-align: center;
+}
+.modalInput textarea {
+    width: 200px;
+    border-radius: 5px;
+    border: none;
+    background: #44515f;
+    color: white;
+    padding: 0 5px;
+    resize: none;
+}
+[v-cloak] {
+    display: none;
+}
+.coverRegExp {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 12;
+}
+
+/*el 样式覆盖*/
+.el-input__inner {
+    background-color: white;
+    height: 28px;
+    line-height: 28px;
+}
+.el-date-editor .el-range__icon {
+    line-height: 23px;
+    color: white;
+}
+.el-date-editor .el-range-input {
+    color: white;
+    background-color: #44515f;
+}
+.el-date-editor .el-range-separator {
+    line-height: 21px;
+    color: white;
+}
+.el-input__icon {
+    line-height: 25px;
+}
+.el-input--suffix .el-input__inner {
+    width: 210px;
+}
+
+/*.el-picker-panel {*/
+    /*background: #293e4c;*/
+    /*border: 1px solid #3e4e5f;*/
+/*}*/
+/*.el-picker-panel__footer {*/
+    /*background: #293e4c;*/
+    /*border-top: 1px solid #3e4e5f;*/
+/*}*/
+/*.el-input__inner {*/
+    /*border: 1px solid #3e4e5f;*/
+/*}*/
+/*.el-date-table th {*/
+    /*border-bottom: solid 1px #3d4863;*/
+/*}*/
+
+.levelDiv {
+    display: flex;
+    align-items: center;
+}
+.levelDiv>input {
+    width: 20px;
+    margin-left: 20px;
+}
+.one {
+    background: radial-gradient(#85a4d6, #0008ff);
+}
+.two {
+    background: radial-gradient(white, #e4e41b);
+}
+.three {
+    background: radial-gradient(20% 20%, white, #ffa500);
+}
+.four {
+    background: radial-gradient(20% 20%, white, red);
+}
+.five {
+    background: radial-gradient(#b96f6f, rgb(105, 20, 20));
+}
+.logbox {
+    text-align: center;
+    width: 16px;
+    border-radius: 10px;
+    height: 16px;
+}
+.trActive td{
+    background-color: #5b5b5b !important;
+}
+
+/*滚动条样式*/
+::-webkit-scrollbar {
+    width: 5px;
+    height: 5px;
+}
+/*水平方向  轨道样式*/
+::-webkit-scrollbar-track:horizontal {
+    background-color: #2c3e50;
+}
+/*水平方向  滑块样式*/
+::-webkit-scrollbar-thumb:horizontal {
+    background-color: #337ab7;
+}
+::-webkit-scrollbar-corner {
+    background-color: transparent;
+}
+::-webkit-scrollbar-thumb:window-inactive {
+    display: none;
+}

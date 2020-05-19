@@ -1,0 +1,127 @@
+.content{
+    display: flex;
+    flex-direction: column;
+    padding: 5px 10px;
+}
+.content-header{
+    flex:0 0 36px;
+    padding-left:82px;
+}
+.content-header li{
+    float:left;
+    margin: 3px 3px;
+    height: 30px;
+    box-sizing: border-box;
+    padding: 0 12px;
+    line-height: 30px;
+    background: #043a54;
+    border:1px solid #153052;
+    cursor: pointer;
+}
+.content-header li.active{
+    background: #3B5064;
+    border-color:#394B5D;
+}
+.content-body{
+    flex:1;
+    display: flex;
+}
+.classify{
+    flex:0 0 80px;
+    margin: 8px;
+}
+.classify li{
+    padding: 5px 0;
+    margin-bottom: 5px;
+    background: #043a54;
+    border: 1px solid #153052;
+    text-align: center;
+    cursor: pointer;
+}
+.classify li.active{
+    background: #3B5064;
+    border-color:#394B5D;
+}
+.detail-config{
+    flex:1;
+    margin: 8px 5px;
+    display:flex;
+    background: #3B5064;
+}
+.detail-config.config-block{
+    display:block;
+}
+.detail-config .config-left{
+    flex:1;
+}
+.detail-config .config-left p{
+    padding: 5px 10px;
+    margin: 5px;
+}
+.detail-config .config-left p label{
+    display: inline-block;
+    width:80px;
+    text-align: right;
+}
+.detail-config .config-left p.vat label{
+    vertical-align: top;
+}
+.detail-config .config-left p .form-input{
+    width: 260px;
+}
+.detail-config .config-left p.vat .form-input{
+    height: 90px;
+    resize: none;
+}
+
+/* p 标签无法包裹超过一层的嵌套关系的元素 因此改用div */
+.detail-config .config-left>div{
+    padding: 5px 10px;
+    margin: 5px;
+}
+.detail-config .config-left div label{
+    display: inline-block;
+    width:80px;
+    text-align: right;
+}
+.detail-config .config-left div.vat label{
+    vertical-align: top;
+}
+.detail-config .config-left div .form-input{
+    width: 260px;
+}
+.detail-config .config-left div.vat .form-input{
+    height: 90px;
+    resize: none;
+}
+
+.detail-config .config-preview{
+    flex:1;
+    border-left:1px dashed #ccc;
+    display: flex;
+    flex-direction: column;
+}
+.detail-config .config-preview p.header{
+    padding: 5px 10px;
+    font-size: 14px;
+    margin-top: 10px;
+}
+.detail-config .config-preview p.header span{
+    float:right;
+    background-image: url("../images/index/refresh.png");
+    width: 20px;
+    height: 20px;
+    background-size: contain;
+    margin-right: 20px;
+}
+.detail-config .config-preview .preview{
+    flex:1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.detail-config .config-preview .preview div.preview-box{
+    width:80% ;
+    height: 180px;
+    position: relative;
+}

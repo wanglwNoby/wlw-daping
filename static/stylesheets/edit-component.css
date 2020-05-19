@@ -1,0 +1,198 @@
+.content{
+    width: 90%;
+    height: 100%;
+    position: relative;
+    margin: 48px 72px 0px;
+    padding: 2px;
+    background-color: #3B5064;
+}
+
+.content .options{
+    position: absolute;
+    top: -30px;
+    left: 10px;
+    overflow: hidden;
+}
+.content .options li{
+    width: 80px;
+    height: 30px;
+    border: 1px solid #153052;
+    border-bottom: none;
+    background: #043a54;
+    margin-left: 8px;
+    line-height: 30px;
+    text-align: center;
+    color: white;
+    cursor: pointer;
+    float: left;
+}
+/* .content .options .active{ color: white;background-color: blue; }
+.content .options .tabNav li:hover{ color: blue;background-color: white; } */
+
+.content .wrap-contain{
+    width: 100%;
+    height: 450px;
+    overflow: hidden;
+}
+.content .contain{
+    width: calc(100% + 20px);
+    height: 100%;
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+.content .contain .wrap-eCharts_item{
+    width: 60px;
+    height: 336px;
+    position: absolute;
+    top: 10px;  
+    left: -62px;
+    overflow: hidden;
+}
+.content .contain .eCharts_item{
+    width: calc(100% + 20px);
+    height: 100%;
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+.content .contain .eCharts_item li{
+    width: 58px;
+    height: 30px;
+    line-height: 30px;
+    text-align: center;
+    border: 1px solid #153052;
+    background: #043a54;
+    margin-bottom: 6px;
+    cursor: pointer;
+}
+.content .contain .eCharts_item .active,.content .options .active{ background: #3B5064;border-color:#394B5D; }
+/* .content .contain .eCharts_item li:hover{ color: blue;background-color: white; } */
+
+.content .contain .eCharts{
+    width: 100%;
+    height: 100%;
+    position: relative;
+    overflow: hidden;
+}
+.content .contain .eCharts .title{
+    width: 95%;
+    height: 24px;
+    line-height: 24px;
+    display: inline-block;
+    color: white;
+    border-bottom: 4px solid #4d5b6f;
+    margin-left: 2%;
+    margin-bottom: 6px;
+    cursor: pointer;
+}
+.content .contain .eCharts .flex{
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    margin-left: 10px;
+    margin-bottom: 10px;
+}
+.content .contain .eCharts .flex .chart{
+    width: 20%;
+    margin-left: 32px;
+    margin-bottom: 32px;
+    border-radius: 6px;
+}
+
+.content .contain .eCharts .flex .chart .chart_title{
+    text-align: center;
+    height: 30px;
+    line-height: 30px;
+}
+.content .contain .eCharts .flex .chart img{
+    width: 100%;
+    height: 94%;
+    border-radius: 6px;
+}
+.content .contain .eCharts .flex .chart .active{border: 2px dashed #ccc;margin-bottom: -4px;}
+
+/* 基本配置 */
+.content .contain .configLeft{
+    float: left;
+    width: 50%;
+    height: 438px;
+    border-right:1px dashed #ccc;
+    padding-top: 18px;
+}
+.content .contain .configLeft .configOption{
+    float: left;
+    position: absolute;
+    left: -62px;
+    top: 10px;
+    overflow: hidden;
+}
+.content .contain .configLeft .configOption li{
+    width: 58px;
+    height: 26px;
+    line-height: 26px;
+    text-align: center;
+    border: 1px solid #153052;
+    background: #043a54;
+    border-radius: 8px;
+    margin-bottom: 6px;
+    cursor: pointer;
+}
+.content .contain .configLeft .configOption .active{ background: #3B5064;border-color:#394B5D; }
+
+.content .contain .configLeft .configDetails .p{
+    padding: 5px 10px;
+    margin: 5px;
+}
+.content .contain .configLeft .configDetails .p label{
+    display: inline-block;
+    width:80px;
+    text-align: right;
+}
+.content .contain .configLeft .configDetails .p .form-input{
+    width: 260px;
+}
+
+.content .contain .configRight{
+    float: left;
+    width: 48%;
+    height: 456px;
+}
+.content .contain .configRight h1{
+    position: relative;
+    left: 20px;
+    top: 10px;
+}
+.content .contain .configRight .preview{
+    position: relative;
+    margin: 0 auto;
+    top: 60px;
+    width: 348px;
+    height: 240px;
+    border: 1px solid #153052;
+    border-radius: 6px;
+    background: #ccc;
+}
+/* 上传图片部分 */
+.recentImg{
+    position: relative;
+    width: 266px;
+    left: 85px;
+    display: flex;
+    flex-wrap: wrap;
+}
+.upImg{
+    height: 60px;
+    width: 72px;
+    margin-top: 10px;
+}
+.el-icon-close{
+    position: relative;
+    left: -17px;
+    top: -49px;
+    background: red;
+    border-radius: 10px;
+}
+/* 分段范围选择块 */
+.pieces{
+    position: relative;
+    left: 28px;
+}

@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>选择需要编辑的大屏</title>
+    <link rel="stylesheet" type="text/css" href="../static/stylesheets/index.css">
+    <link rel="stylesheet" href="../static/stylesheets/page.css">
+    <link rel="stylesheet" href="../static/stylesheets/add-dashboard.css">
+    <style>
+        label{
+            width: 60px;
+            display: inline-block;
+            text-align: right;
+            margin-right: 10px;
+        }
+        .content{
+            display: flex;
+            align-items: center;
+        }
+        table {
+          width: 100%;
+          border-spacing: 0;
+          border-collapse: collapse;
+        }
+        thead {
+          background-color: #273646;
+        }
+        th {
+          text-align: left;
+          height: 30px;
+          padding: 0 20px;
+          border-bottom: 2px solid #202223;
+        }
+        tbody tr {
+          background-color: #2c3e50
+        }
+        td {
+          padding: 5px 20px;
+          border-top: 1px solid #202223;
+        }
+        .trActive {
+          background-color: #5b5b5b;
+        }
+        .cur_btn {
+          cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="section" id="eidtApp">
+        <div id="table-cont" style="overflow:auto;height: 414px;">
+            <table>
+              <thead>
+                <tr>
+                  <th>名称</th>
+                  <th style="width: 80px;">操作</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="item in dashboardList" @click="{selectId = item._id}" :class="{trActive: selectId == item._id}">
+                  <td>{{item.name}}</td>
+                  <td>
+                    <span class="cur_btn" style="margin-right: 15px;" @click="selectDashboard(item._id)">编辑</span>
+                    <span class="cur_btn" @click="deleteDashboard(item._id)">删除</span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+        </div>
+        <div class="footer">
+            <span @click="closeLayer" class="btn">关闭</span>
+        </div>
+    </div>
+    <script src="../static/javascripts/vue.min.js"></script>
+    <script src="../static/javascripts/axios.js"></script>
+    <script src="../static/javascripts/jquery-3.2.1.min.js"></script>
+    <script src="../static/plugin/layer-3.1.1/layer.js"></script>
+    <script src="../static/javascripts/ibdmc.until.js"></script>
+    <script src="../config/default.js"></script>
+    <script>
+        var eidtApp = new Vue({
+            el:"#eidtApp",
+            data:{
+              api: Config.api,
+              dashboardList:[],
+              selectId:""
+            },
+            mounted:function(){
+              //在这里通过ajax获取dashboardList
+              // this.selectId = templateList[0].id; 设置当前选中项
+
+              axios.get( this.api + '/dashboard/list')
+                .then(response => {
+                  let res = response.data
+                  this.dashboardList = res.data
+                  if(this.getUrlQuery('id')) {
+                    this.selectId = this.getUrlQuery('id')
+                  } else {
+                    this.selectId = res.data[0]._id
+                  }
+                })
+                .catch(e => {
+                  console.log(e)
+                })
+
+              // 表格头部固定
+              this.tableHeadTrans()
+            },
+            methods:{
+              getUrlQuery: function (name) {
+                var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)"); //构造一个含有目标参数的正则表达式对象
+                var r = window.location.search.substr(1).match(reg);  //匹配目标参数
+                if (r != null) return unescape(r[2]); return null; //返回参数值
+              },
+                tableHeadTrans: function (params) {
+                  var tableCont = document.querySelector('#table-cont')
+                  function scrollHandle(e) {
+                    var scrollTop = this.scrollTop;
+                    this.querySelector('thead').style.transform = 'translateY(' + scrollTop + 'px)';
+                  }
+                  tableCont.addEventListener('scroll', scrollHandle)
+                },
+                closeLayer:function(){
+                    var index = parent.layer.getFrameIndex(window.name);
+                    parent.layer.close(index);
+                },
+                selectDashboard:function(_id){
+                  var _this = this
+                  if(window.parent.app.layout.length > 0) {
+                    layer.open({
+                      title: '提示',
+                      area: ['350px', '150px'],
+                      content: '当前编辑是否已保存？',
+                      btn: ['确定', '取消'],
+                      yes: function (index, layero) {
+                        // emitRoot('', 'stagingDashboard', 'app')
+                        //将数据传递给住页面，进行加载
+                        for (var i = 0; i < _this.dashboardList.length; i++) {
+                          if (_this.dashboardList[i]._id === _id) {
+                            emitRoot(_this.dashboardList[i], 'renderDashboard', 'app')
+                          }
+                        }
+                        _this.closeLayer()
+                      },
+                      btn2: function (index, layero) {
+                        layer.closeAll()
+                      }
+                    })
+                  } else {
+                    //将数据传递给住页面，进行加载
+                    for (var i = 0; i < this.dashboardList.length; i++) {
+                      if (this.dashboardList[i]._id === _id) {
+                        emitRoot(this.dashboardList[i], 'renderDashboard', 'app')
+                      }
+                    }
+                    this.closeLayer()
+                  }
+                },
+                deleteDashboard: function (_id) {
+                  var _this = this
+                  layer.open({
+                    title: '提示',
+                    area: ['350px', '150px'],
+                    content: '确定删除?',
+                    btn: ['确定', '取消'],
+                    yes: function (index, layero) {
+                      axios.get(_this.api + '/dashboard/delete/' + _id)
+                        .then((response) => {
+                          var res = response.data
+                          if (res.result) {
+                            for (var i = 0; i < _this.dashboardList.length; i++) {
+                              if (_this.dashboardList[i]._id === _id) {
+                                _this.dashboardList.splice(i, 1)
+                                break
+                              }
+                            }
+                            if (window.parent.app.currentId === _id) {
+                              emitRoot('', 'cleanDashboard', 'app')
+                            }
+                          }
+                        }).catch((e) => {
+                          console.log('error= ', e)
+                        })
+                        layer.closeAll()
+                    },
+                    btn2: function (index, layero) {
+                      layer.closeAll()
+                    }
+                  })
+
+                }
+            }
+        })
+    </script>
+</body>
+</html>

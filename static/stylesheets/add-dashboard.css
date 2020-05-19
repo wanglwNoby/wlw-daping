@@ -1,0 +1,45 @@
+.creat-container {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    color:#b8c7ce;
+}
+
+.creat-container .creat-main {
+    flex: 1;
+    display: flex;
+}
+.creat-form {
+    flex:1;
+    padding-top:10px;
+}
+.creat-form p{
+    padding: 10px;
+    margin-bottom: 20px;
+}
+.creat-form p label{
+    width: 100px;
+    display: inline-block;
+    text-align: right;
+    margin-right: 10px;
+}
+.creat-preview {
+    flex:1;
+    border-left:1px dashed rgba(51, 51, 51, 1);
+    display: flex;
+    flex-direction: column;
+}
+.creat-preview p {
+    flex:0 0 50px;
+    line-height: 50px;
+    padding-left: 20px;
+}
+.creat-preview .creat-img{
+    flex:1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.creat-preview .creat-img img{
+    width: 90%;
+}

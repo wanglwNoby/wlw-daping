@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>编辑组件</title>
+    <link rel="stylesheet" href="../static/plugin/element-2.3.9/index.css">
+    <link rel="stylesheet" href="../static/stylesheets/page.css">
+    <link rel="stylesheet" href="../static/stylesheets/edit-component.css">
+    <style>
+        .el-color-picker{vertical-align: top}
+    </style>
+</head>
+<body>
+    <div id="tabApp" class="section">
+        <div class="content">
+            <!-- 头部选项卡 -->
+            <div class="options">                  
+                <ul class="tabNav">
+                    <li v-for="(tab,index) in tabsName" @click="tabNum = index" v-bind:class="{active: index == tabNum}">    
+                        {{tab}}  
+                    </li> 
+                </ul>
+            </div>
+            <!-- 主体内容 -->
+            <div class="wrap-contain">                      <!-- 隐藏滚动条 -->
+                <div class="contain" ref="scrollBox">
+                    <!-- 组件列表 -->
+                    <div v-show="tabNum == 0">
+                        <!-- 左侧边栏 -->
+                        <div class="wrap-eCharts_item">
+                            <ul class="eCharts_item">
+                                <li v-for="(item,index) in itemsName" @click="itemsSwitch(index)" v-bind:class="{active: index == itemNum}">    
+                                    {{item}}  
+                                </li>
+                            </ul>
+                        </div>
+                        <!-- eCharts图 -->
+                        <div id="con_list">
+                            <div class="eCharts" v-for="(img,index) in imgList">
+                                <label @click="select(img[0])" class="title">
+                                    {{img[0]}}
+                                </label>
+                                <el-collapse-transition>
+                                    <ul v-show="isInSelectName(img[0])" class="flex">
+                                        <li class="chart" :id="imgType" v-for="imgType in img[1]"  @click="imgSwitch(imgType)">
+                                            <p class="chart_title">{{imgType}}</p>
+                                            <img v-lazy="'../static/images/eCharts/' + imgType + '.png'" v-bind:class="{active: selectImg == imgType}">
+                                        </li>
+                                    </ul>
+                                </el-collapse-transition>
+                            </div>
+                        </div>
+                    </div>  
+                    <!-- //基本设置 -->
+                    <div v-if="tabNum == 1">  
+                        <div class="configLeft">
+                            <!-- 左侧配置项栏 -->
+                            <ul class="configOption">
+                                <li v-for="(configVal,key,index) in echartsConfigList" @click="optionNum = index" :class="{active: optionNum == index}">    
+                                    {{key}} 
+                                </li>
+                            </ul>
+                            <!-- 详细属性 -->
+                            <div class="configDetails">
+                                <div v-for="(configVal,configKey,index) in echartsConfigList" v-if="optionNum == index">
+                                    <div v-on:change="setBaseConfig()" class="p" v-for="(config,index1) in configVal">
+                                        <label v-if="config.dom_type">{{config.label}}：</label>
+                                        <!-- 文本输入框 -->
+                                        <input v-if="config.dom_type == 1" type="text" class="form-input" :value="config.value" v-model="config.value">
+                                        <!-- 下拉选择框 -->
+                                        <select v-if="config.dom_type == 2" class="form-input" v-model="config.value">
+                                            <option v-for="optionList in config.list" :value="optionList">
+                                                {{optionList}}
+                                            </option>
+                                        </select>
+                                        <!-- 颜色选择框 -->
+                                        <input v-if="config.dom_type == 3" type="text" readonly class="form-input" :value="config.value" v-model="config.value">
+                                        <el-color-picker v-if="config.dom_type == 3" show-alpha size="mini" v-on:change="setBaseConfig()" v-model="config.value"></el-color-picker>
+                                        <!-- 数字输入框 -->
+                                        <input v-if="config.dom_type == 4" type="number" class="form-input" :value="config.value" v-model="config.value">
+                                        <!-- 图片选择域 -->
+                                        <label v-if="config.dom_type == 5" class="btn" style="text-align: center;" for="File" @change="addImg">请选择图片</label>
+                                        <form v-if="config.dom_type == 5"><input type="file" id="File" style="position:absolute;clip:rect(0 0 0 0);" @change="addImg"></form>
+                                        <!-- 图片展示区域 -->
+                                        <div v-if="config.dom_type == 5" class="recentImg">
+                                            <li style="display: inline" v-for="(item,index) in imgs">
+                                                <img :src="Config.api + '/' + item.filename" class="upImg" @click="config.value = Config.api + '/' + item.filename;setBaseConfig()">
+                                                <i class="el-icon-close" @click="deleteRecentImage(item._id, item.filename)"></i>
+                                            </li>
+                                        </div>
+                                        <!-- 分段范围输入区域,visualMap -->
+                                        <select v-if="config.dom_type == 6 && config.value.length>0" class="form-input" v-model="piecesIndex" @change.stop="piece = JSON.parse(JSON.stringify(config.value[piecesIndex]))">
+                                            <option v-for="(optionList,index) in config.value" :value="index">
+                                                第{{index+1}}段
+                                            </option>
+                                        </select>
+                                        <div v-if="config.dom_type == 6" class="pieces" @change.stop><br>
+                                            <label>最小值：</label><input type="number" class="form-input" style="width: 236px" :value="piece.gt" v-model="piece.gt"><br><br>
+                                            <label>最大值：</label><input type="number" class="form-input" style="width: 236px" :value="piece.lte" v-model="piece.lte"><br><br>
+                                            <label>文本：</label><input type="text" class="form-input" style="width: 236px" :value="piece.label" placeholder="输入该段名称" v-model="piece.label"><br><br>
+                                            <label>颜色：</label><input type="text" readonly class="form-input" style="width: 236px" :value="piece.color" v-model="piece.color"><el-color-picker show-alpha size="mini" v-model="piece.color"></el-color-picker><br><br>
+                                            <button class="btn" style="position: absolute;left: 90px;color: white" @click="addPiece(config.value)">添加</button>
+                                            <button class="btn" style="position: absolute;left: 180px;color: white" @click="config.value.splice(piecesIndex,1,JSON.parse(JSON.stringify(piece)))">修改</button>
+                                            <button class="btn" style="position: absolute;left: 270px;color: white" @click="config.value.splice(piecesIndex,1)">删除</button>
+                                        </div>
+                                        <!-- 显示开关 -->
+                                        <el-switch v-if="config.dom_type == 7" v-model="config.value" :active-value="config.list[0]" active-text="是" :inactive-value="config.list[1]" inactive-text="否" v-on:change="setBaseConfig()"></el-switch>
+                                        <!-- 多数组情况，主要用来渲染series -->
+                                        <div style="margin-bottom: 10px" v-for="(seriesConfig,index2) in config" v-if="seriesConfig.dom_type">
+                                            <label>{{seriesConfig.label}}{{index1+1}}：</label>
+                                            <!-- 文本输入框 -->
+                                            <input v-if="seriesConfig.dom_type == 1" type="text" class="form-input" :value="seriesConfig.value" v-model="seriesConfig.value">
+                                            <!-- 下拉选择框 -->
+                                            <select v-if="seriesConfig.dom_type == 2" class="form-input" v-model="seriesConfig.value">
+                                                <option v-for="optionList in seriesConfig.list" :value="optionList">
+                                                    {{optionList}}
+                                                </option>
+                                            </select>
+                                            <!-- 颜色选择框 -->
+                                            <input v-if="seriesConfig.dom_type == 3" type="text" readonly class="form-input" :value="seriesConfig.value" v-model="seriesConfig.value">
+                                            <el-color-picker v-if="seriesConfig.dom_type == 3" show-alpha size="mini" v-on:change="setBaseConfig()" v-model="seriesConfig.value"></el-color-picker>
+                                            <!-- 数字输入框 -->
+                                            <input v-if="seriesConfig.dom_type == 4" type="number" class="form-input" :value="seriesConfig.value" v-model="seriesConfig.value">
+                                            <!-- 显示开关 -->
+                                            <el-switch v-if="seriesConfig.dom_type == 7" v-model="seriesConfig.value" :active-value="seriesConfig.list[0]" active-text="是" :inactive-value="seriesConfig.list[1]" inactive-text="否" v-on:change="setBaseConfig()"></el-switch>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- 效果预览 -->
+                        <div class="configRight">
+                            <h1>效果预览</h1>
+                            <div class="preview">
+                                <component v-if="itemsName[itemNum] == '自定义'" v-bind="eChartsOption" v-bind:is="configTemplate"></component>
+                                <e-charts-template v-else v-bind:e-charts-option="eChartsOption"></e-charts-template>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- //高级设置 -->
+                    <div v-if="tabNum == 2">         
+                        <div>
+                            //高级设置   
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="footer">
+            <span @click="closeLayer" class="btn">取消</span>
+            <span @click="confirmChart" class="btn">确认</span>
+        </div>
+    </div>
+  
+    <script src="../static/javascripts/jquery-3.2.1.min.js"></script>
+    <script src="../static/javascripts/vue.min.js"></script>
+    <script src="../static/javascripts/vue-lazyload.js"></script>
+    <script src="../static/javascripts/echarts.min.js"></script>
+    <script src="../static/javascripts/baseConfig.js"></script>
+    <script src="../static/javascripts/axios.js"></script>
+    <script src="../config/default.js"></script>
+    <script src="../static/javascripts/Lodash.js"></script>
+    <script src="../static/plugin/element-2.3.9/index.js"></script>
+    <script src="../static//map/china.js"></script>
+    <script>
+        Vue.component('eChartsTemplate',{
+            props: ['eChartsOption'],
+            render: function(createElement){
+                return createElement("div",{
+                    attrs: {
+                        id: this.chartId
+                    },
+                    style: {
+                        width: '100%',
+                        height: '100%'
+                    },
+                })
+            },
+            data: function(){
+                return{
+                    chartId: null,
+                    chartOption: '',
+                    myEcharts: '',
+                    url: ''
+                }
+            },
+            created(){
+                this.chartId = "chart-" + Date.now() + parseInt(Math.random());
+                this.chartOption = JSON.parse(JSON.stringify(this.eChartsOption));
+                this.url = this.chartOption.series[0] ? this.chartOption.series[0].data:this.chartOption.series.data;
+                setInterval(() => {this.setData()},5000)
+            },
+            mounted(){
+                this.myEcharts = echarts.init(document.getElementById(this.chartId));
+                this.setData();
+            },
+            watch: {
+                eChartsOption: {
+                    handler(newVal, oldVal){
+                        this.chartOption = JSON.parse(JSON.stringify(newVal));
+                        this.setData();
+                    },
+                    deep:true
+                }
+            },
+            methods: {
+                setOptions(option){
+                    this.myEcharts.setOption(option,true);
+                },
+                setData(){
+                    this.$axios.get(this.url).then(res=>{
+                        let optionData = res.data;
+                        this.$nextTick(() => {
+                            for(let key in optionData){
+                                if(key.split("_")[0] == "series"){
+                                    for(let index in optionData[key]){
+                                        let series_data = optionData[key][index];
+                                        for(key1 in series_data){
+                                            this.chartOption.series[index][key1] = optionData[key][index][key1];
+                                        }
+                                        //特殊处理，玫瑰图
+                                        if(this.chartOption.series[index].hasOwnProperty("roseType")){
+                                            this.chartOption.series[index].data = this.chartOption.series[index].data.sort(function (a, b) { return a.value - b.value; })
+                                        }
+                                    }
+                                }else if(key.split("_")[0] != "legend"){
+                                    this.chartOption[key.split("_")[0]][key.split("_")[1]] = optionData[key]
+                                }
+                            }
+                            this.setOptions(this.chartOption);
+                        })
+                    })
+                }
+            }
+        })
+        
+        Vue.component('headTemplate', {
+            props: ['title'],
+            data: function () {
+                return {
+                    lineheight: '',
+                    margintop: '',
+                    marginleft: ''
+                }
+            },
+            template: `<div ref="headBox" :style="{writingMode:title.writingmode,height:'100%',width:'100%',textAlign:title.textalign,letterSpacing:title.letterspacing+'px',lineHeight:lineheight+'px',fontFamily:title.fontfamily,fontSize:title.fontsize+'px',color:title.textcolor}"><img ref="imgBox" :src="title.imglogo" :style="{height:48+'px',width:60+'px',position:'absolute',display:'block',marginTop:margintop+'px',marginLeft:marginleft+'px',transform:'rotate('+ title.transform +'deg)'}"/>{{title.text}}</div>`,
+            mounted(){
+                this.headbox = this.$refs.headBox;
+                this.imgBox = this.$refs.imgBox;
+                if(this.title.writingmode == 'horizontal-tb'){
+                    this.lineheight = this.headbox.offsetHeight;
+                    this.margintop = (this.headbox.offsetHeight-this.imgBox.offsetHeight)/2;
+                    this.marginleft = 16
+                }else{
+                    this.lineheight = this.headbox.offsetWidth;
+                    this.margintop = 16;
+                    this.marginleft = (this.headbox.offsetWidth-this.imgBox.offsetWidth)/2;
+                }
+            },
+            watch: {
+                'title.writingmode': function(newVal,oldVal){
+                    if(newVal == 'horizontal-tb'){
+                        this.lineheight = this.headbox.offsetHeight;
+                        this.margintop = (this.headbox.offsetHeight-this.imgBox.offsetHeight)/2;
+                        this.marginleft = 16;
+                    }else{
+                        this.lineheight = this.headbox.offsetWidth;
+                        this.margintop = 16;
+                        this.marginleft = (this.headbox.offsetWidth-this.imgBox.offsetWidth)/2;
+                    }
+                }
+            }
+        })
+        
+        Vue.component('textTemplate',{
+            props: ['text'],
+            data: function () {
+                return {
+                    margintop: '',
+                    marginleft: ''
+                }
+            },
+            template: `<div :style="{writingMode:text.writingmode,height:'100%',width:'100%',textAlign:text.textalign,letterSpacing:text.letterspacing+'px',textIndent:text.textindent+'em',fontFamily:text.fontfamily,fontSize:text.fontsize+'px',color:text.textcolor}">{{text.text}}</div>`,
+        })
+        Vue.use(VueLazyload, {
+            error: '../static/images/eCharts/error.jpg',
+            loading: '../static/images/eCharts/loading.gif',
+            attempt: 6,
+            listenEvents: [ 'scroll' ]
+        })
+        Vue.prototype.$axios = axios;
+        var app = new Vue({    
+            el: "#tabApp",    
+            data: {
+                selectImg: 'line_stack',
+                selectName: [],
+                tabNum: 0,
+                tabsName: ["组件列表", "基本设置","高级设置"],  
+                itemNum: 0,
+                itemsName: ["折线图","柱状图","饼图","散点图","地图","K线图","雷达图","关系图","树图","树状图","旭日图","漏斗图","仪表盘","象形柱图","河流图","日历图","自定义图","数据集","自定义"],
+                optionNum: 0,
+                imgList:[
+                    ['折线图',['line_stack','line_simple','line_areastack','line_marker','line-6']],
+                    ['柱状图',['bar_simple','bar_linebar','bar_dynamic','bar_ycategory','bar_mark','bar_yaxis']],
+                    ['饼图',['pie_custom','pie_doughnut','pie_simple','pie-4','pie-5']],
+                    ['散点图',['scatter_simple','scatter-2','scatter-3']],
+                    ['地图',['map_china','map-1','map-3','map-4','map-5','map-6']],
+                    ['K线图',['candlestick-1','candlestick-2','candlestick-3','candlestick-4','candlestick-5','candlestick-6']],
+                    ['雷达图',['radar_simple','radar-2','radar-3','radar-4','radar-5']],
+                    ['关系图',['graph-1','graph-2','graph-3','graph-4','graph-5','graph-6']],
+                    ['树图',['tree-1','tree-2','tree-3','tree-4','tree-5','tree-6']],
+                    ['树状图',['treemap-1','treemap-2','treemap-3','treemap-4','treemap-5','treemap-6']],
+                    ['旭日图',['sunburst-1','sunburst-2','sunburst-3','sunburst-4','sunburst-5','sunburst-6']],
+                    ['漏斗图',['funnel_simple','funnel-2','funnel-3','funnel-4']],
+                    ['仪表盘',['gauge_simple','gauge-2','gauge-3']],
+                    ['象形柱图',['pictorialBar-1','pictorialBar-2','pictorialBar-3','pictorialBar-4','pictorialBar-5','pictorialBar-6','pictorialBar-7']],
+                    ['主题河流图',['themeRiver-1','themeRiver-2']],
+                    ['日历图',['calendar-1','calendar-2','calendar-3','calendar-4','calendar-5','calendar-6']],
+                    ['自定义图',['custom-1','custom-2','custom-3','custom-4','custom-5','custom-6','custom-7','custom-8','custom-9']],
+                    ['数据集',['dataset-1','dataset-2','dataset-3','dataset-4','dataset-5','dataset-6','dataset-7']],
+                    ['自定义',['head','text']]
+                ],
+                eChartsOption: {},
+                echartsConfigList: {},
+                echartDataUrl: 'http://www.itroad.top:3000/mock/24/echart/line/line_stack',
+                configData: '',                 //传递数据
+                configTemplate: '',              //传递组件名称
+                imgs: [],
+                imgAccept: ["image/gif", "image/jpeg", "image/png", "image/jpg"],   //允许传入图片类型
+                //chart系列颜色
+                color: ['rgba(194, 53, 49, 1)','rgba(47, 69, 84, 1)','rgba(97, 160, 168, 1)','rgba(212, 130, 101, 1)','rgba(145, 199, 174, 1)','rgba(116, 159, 131, 1)','rgba(202, 134, 34, 1)','rgba(189, 162, 154, 1)','rgba(110, 112, 116, 1)','rgba(84, 101, 112, 1)','rgba(196, 204, 211, 1)'],
+                piece:{gt:0,lte:50,label:"",color:"rgba(0, 0, 0, 1)"},
+                piecesIndex: 0
+            },
+            created(){
+                this.loadImg();
+                let echartsList = window.parent.app.readechartsCfg();
+                //未创建容器
+                if(!echartsList){
+                    this.echartsConfigList = configList[this.selectImg];
+                    this.getData();
+                    return 
+                };
+                //创建容器但未放有eCharts图
+                if(echartsList.length == 0){
+                    this.echartsConfigList = configList[this.selectImg];
+                    this.getData();
+                }
+                // 创建容器并已放有eCharts图
+                echartsList.forEach(echarts => {
+                    ({echartsConfigList:this.echartsConfigList, echartsName:this.configTemplate, echartsData:this.eChartsOption} = echarts);
+                    this.configData = this.eChartsOption;
+                    if(echarts.echartsName != 'eChartsTemplate'){
+                        this.itemNum = 18;
+                    }
+                    this.tabNum = 1;
+                    return
+                });
+            },
+            mounted(){
+                this.box = this.$refs.scrollBox;
+                this.box.addEventListener('scroll', this.onScroll);
+            },
+            watch: {
+                tabNum: function(newVal, oldVal){
+                    switch(newVal){
+                        case 0:
+                            this.itemNum = 0
+                            break;
+                        case 1:
+                            this.optionNum = 0
+                            break;
+                    }
+                }
+            },    
+            methods: {
+                //添加分段
+                addPiece(value){
+                    let piece = JSON.parse(JSON.stringify(this.piece));
+                    if(piece.gt != ''){
+                        piece.gt = parseInt(piece.gt);
+                    }
+                    if(piece.lte != ''){
+                        piece.lte = parseInt(piece.lte);
+                    }
+                    if(piece.gt > piece.lte){
+                        alert("输入有误，请重新输入");
+                        this.piece.gt = 0;
+                        this.piece.lte = 0;
+                        return
+                    }
+                    value.push(piece)
+                },
+                //上传图片
+                addImg(event){
+                    let img = event.target.files[0];
+                    if(this.imgAccept.indexOf(img.type) == -1){  
+                        alert('请选择我们支持的图片格式！');  
+                        return false
+                    }  
+                    if(img.type > 3145728){  
+                        alert('请选择3M以内的图片！');  
+                        return false
+                    }  
+                    let param = new FormData();
+                    param.append('ibdmc',img,img.name);
+                    param.append('type', 2)
+                    this.$axios.post(Config.api + '/recent_image/upload',param,{  
+                        headers:{'Content-Type' : 'multipart/form-data'}  
+                    }).then(response => {
+                        this.loadImg();
+                    }).catch(error => {  
+                        alert('上传图片出错！');  
+                    })      
+                },
+                //加载图片
+                loadImg(){
+                    this.$axios.get(Config.api + '/recent_image/list/2').then(response => {
+                        for(let i=0; i<response.data.data.length; i++){
+                            if(JSON.stringify(this.imgs).indexOf(JSON.stringify(response.data.data[i])) == -1){
+                                this.imgs.push(response.data.data[i])
+                            }
+                        }
+                    }).catch(error => {  
+                        alert('上传图片出错！');  
+                    })
+                },
+                //删除图片
+                deleteRecentImage: function(_id, filename){
+                    var _this = this;
+                    axios.get(Config.api + '/recent_image/delete/' + _id + '/' + filename).then(function(response){
+                        if(response.data.result){
+                            for(var i=0;i<_this.imgs.length;i++){
+                                if (_this.imgs[i]._id == _id) {
+                                    _this.imgs.splice(i, 1);
+                                    console.log('删除成功')
+                                    break
+                                }
+                            }
+                        }else{
+                            console.log('删除失败')
+                        }
+                    })
+                },
+                //根据baseConfig构建option基本参数
+                setBaseConfig(){
+                    this.eChartsOption = {};
+                    for(let key in this.echartsConfigList){
+                        let c;
+                        this.eChartsOption[key] = [];       //初始化设为数组
+                        for(let index in this.echartsConfigList[key]){
+                            if(this.echartsConfigList[key][index] instanceof Array){    //当类型为数组时
+                                for(let index1 in this.echartsConfigList[key][index]){
+                                    let a = this.echartsConfigList[key][index][index1].path.split(".");
+                                    let b = {};
+                                    for(let i=a.length-1;i>=0;i--){
+                                        b[a[i]] = Object.assign({},b,b[a[i]])
+                                        if(a[i] == a[i+1]){         //判断路径是否重名，重名时做特殊处理
+                                            for(let key1 in b[a[i]]){
+                                                if(key1 != a[i]){
+                                                    delete b[a[i]][key1]
+                                                }
+                                            }
+                                        }else{
+                                            delete b[a[i+1]]
+                                        }
+                                        if(i == a.length-1 && a.length != 1){
+                                            b[a[i]] = this.echartsConfigList[key][index][index1].value
+                                        }
+                                    }
+                                    c = _.defaultsDeep({},c,b[key])     //深拷贝合并
+                                }
+                                this.eChartsOption[key].push(c);
+                                c = {}
+                            }else{  //当类型为对象
+                                let a = this.echartsConfigList[key][index].path.split(".");
+                                let b = {};
+                                for(let i=a.length-1;i>=0;i--){
+                                    b[a[i]] = Object.assign({},b,b[a[i]])
+                                    if(a[i] == a[i+1]){         //判断路径是否重名，重名时做特殊处理
+                                        for(let key1 in b[a[i]]){
+                                            if(key1 != a[i]){
+                                                delete b[a[i]][key1]
+                                            }
+                                        }
+                                    }else{
+                                        delete b[a[i+1]]
+                                    }
+                                    if(i == a.length-1 && a.length != 1){
+                                        b[a[i]] = this.echartsConfigList[key][index].value
+                                    }
+                                }
+                                c = _.defaultsDeep({},c,b[key])     //深拷贝合并
+                                //判断c是否为空（路径只有一段），采用不同赋值方法
+                                if(JSON.stringify(c) == "{}"){
+                                    if(key == 'color'){
+                                        this.eChartsOption[key].push(this.echartsConfigList[key][index].value)
+                                    }else{
+                                        this.eChartsOption[key] = this.echartsConfigList[key][index].value
+                                    }
+                                }else{
+                                    this.eChartsOption[key] = Object.assign({},this.eChartsOption[key],c)
+                                }
+                            }
+                        }
+                    }
+                    this.eChartsOption = Object.assign({},this.eChartsOption);
+                    this.configData = this.eChartsOption;
+                    console.log(this.configData)
+                },
+                //根据获取的数据重新设置baseConfig
+                resetBaseConfig(optionData){
+                    for(let key in optionData){
+                        if(key.split("_")[0] == "legend"){
+                            for(let index in this.echartsConfigList[key.split("_")[0]]){
+                                if(this.echartsConfigList[key.split("_")[0]][index].path.indexOf(key.split("_")[1]) != -1){
+                                    this.echartsConfigList[key.split("_")[0]][index].value = optionData[key]
+                                }
+                            }
+                        }else if(key.split("_")[0] == "series"){
+                            //如果为数组，表示series已经配置过，无需再次设置
+                            if(this.echartsConfigList[key.split("_")[0]][0] instanceof Array){
+                                return
+                            }
+                            //根据接收到的数据长度，设置series属性
+                            let a = this.echartsConfigList[key.split("_")[0]];
+                            this.echartsConfigList[key.split("_")[0]] = [];     //第一次进来时将series设置成数组格式
+                            for(let index in optionData[key]){
+                                a = JSON.parse(JSON.stringify(a));
+                                let series_data = optionData[key][index];
+                                for(key1 in series_data){
+                                    for(let i=0;i<a.length;i++){
+                                        if(a[i].path.indexOf(key1) != -1){
+                                            a[i].value = this.echartDataUrl;
+                                            break
+                                        }else{
+                                            if(i == a.length-1){
+                                                a[i+1] = {"label": "数据来源","dom_type": 1,"value": this.echartDataUrl,"path": "series." + key1}
+                                            }
+                                        }
+                                    }
+                                }
+                                this.echartsConfigList[key.split("_")[0]].push(a)
+                            }
+                            //根据接收到的数据长度，设置color属性
+                            let len = this.selectImg.split("_")[0] == 'pie' ? optionData[key][0].data.length : optionData[key].length;      //当为饼图时，长度为其data的长度
+                            if(this.echartsConfigList.color){
+                                for(let i=0;i<len;i++){
+                                    if(!this.echartsConfigList.color[i]){
+                                        this.$set(this.echartsConfigList.color, i, JSON.parse(JSON.stringify(this.echartsConfigList.color[0])));
+                                        this.echartsConfigList.color[i].value = this.color[i];
+                                    }
+                                }
+                            }                           
+                        }else{
+                            for(let index in this.echartsConfigList[key.split("_")[0]]){
+                                if(this.echartsConfigList[key.split("_")[0]][index] instanceof Array){
+                                    for(let index1 in this.echartsConfigList[key.split("_")[0]][index]){
+                                        if(this.echartsConfigList[key.split("_")[0]][index][index1].path.indexOf(key.replace("_",".")) != -1){
+                                            this.echartsConfigList[key.split("_")[0]][index][index1].value = this.echartDataUrl
+                                        }
+                                    }
+                                }else{
+                                    if(this.echartsConfigList[key.split("_")[0]][index].path.indexOf(key.replace("_",".")) != -1){
+                                        this.echartsConfigList[key.split("_")[0]][index].value = this.echartDataUrl
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                //设置eCharts配置项
+                setEChartsOption(optionData){
+                    //根据获取的数据重新设置baseConfig
+                    this.resetBaseConfig(optionData);
+                    //根据baseConfig构建option基本参数
+                    this.setBaseConfig();
+                },
+                //从接口获取数据
+                getData(){
+                    axios.get(this.echartDataUrl).then(res=>{
+                        let optionData = res.data;
+                        this.$nextTick(() => {
+                            this.setEChartsOption(optionData);
+                            this.configTemplate = 'eChartsTemplate';
+                        })
+                    })
+                },
+                //根据左侧选项卡进行滚动
+                itemsSwitch(index){
+                    let jumpElement = document.getElementById("con_list").getElementsByClassName("eCharts");
+                    let jumpTop = jumpElement[index].offsetTop-jumpElement[0].offsetTop;
+                    $('.contain').stop().animate({'scrollTop' : jumpTop}, 10);
+                },
+                //收缩展开功能
+                select(selected){
+                    let len = this.selectName.length;
+                    for(var i=0;i<len;i++){
+                        if(this.selectName[i] == selected){
+                            this.selectName.splice(i,1);
+                            return;
+                        }
+                    }
+                    this.selectName.push(selected);
+                },
+                isInSelectName(selected){
+                    for(let i=0;i<this.selectName.length;i++){
+                        if(selected == this.selectName[i]){
+                            return false;
+                        }
+                    }
+                    return true;
+                },
+                //选择图例
+                imgSwitch(imgType){
+                    this.selectImg = imgType;
+                    this.echartsConfigList = configList[this.selectImg];
+                    if(this.imgList[this.imgList.length-1][1].indexOf(imgType) == -1){
+                        this.echartDataUrl = `${Config.echartData}/echart/${imgType.split("_")[0]}/${this.selectImg}`
+                        this.getData();
+                    }else{
+                        this.setBaseConfig();
+                        this.configTemplate = `${this.selectImg}Template`
+                    }
+                },
+                //根据鼠标滚动进行滚动
+                onScroll(){
+                    let highElement = document.getElementById("con_list").getElementsByClassName("eCharts");
+                    let scrolled = this.box.scrollTop;
+                    let len = this.itemsName.length;
+                    for(i = 1;i < len;i++){
+                        if(scrolled < highElement[0].clientHeight/2){this.itemNum = 0;break;}
+                        if((scrolled+document.getElementsByClassName("contain")[0].clientHeight) == document.getElementById("con_list").clientHeight){
+                            this.itemNum = len-1;
+                            break;
+                        }
+                        if(highElement[i].offsetTop-highElement[i-1].clientHeight/2 < scrolled && scrolled < highElement[i].offsetTop+highElement[i].clientHeight/2)
+                        {
+                            this.itemNum = i;
+                        }
+                    }
+                },
+                closeLayer:function(){
+                    var index = parent.layer.getFrameIndex(window.name);
+                    parent.layer.close(index); 
+                },
+                //确认按钮功能
+                confirmChart:function(){
+                    let index = parent.layer.getFrameIndex(window.name);
+                    parent.layer.close(index);
+                    window.parent.app.addComponentTemplate(this.configTemplate,this.configData,this.echartsConfigList);
+                }
+            }
+        })
+    </script>
+</body>
+</html>

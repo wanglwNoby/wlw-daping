@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>创建页面</title>
+    <link rel="stylesheet" href="../static/stylesheets/page.css">
+    <link rel="stylesheet" href="../static/stylesheets/add-dashboard.css">
+</head>
+
+<body>
+    <div id="creat_add" class="creat-container section">
+        <div class="creat-main content">
+            <div class="creat-form">
+                <p><label>名称：</label><input type="text" v-model="name" class="form-input" style="width: 286px;"></p>
+                <p><label>来源：</label><input type="radio" v-model="sourceType" value="1">&nbsp;&nbsp;模板&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input type="radio" v-model="sourceType" value="0">&nbsp;&nbsp;自定义</p>
+                <p v-show="sourceType == 1"><label>选择模板：</label>
+                    <select v-model="templateId" class="form-input" style="width: 200px;">
+                        <option :value="template._id" v-for="template in templates">{{template.name}}</option>
+                    </select>&nbsp;&nbsp;&nbsp;
+                    <select v-model="templateSet" class="form-input" style="width: 70px;">
+                        <option value="0">默认</option>
+                        <option value="1">置空</option>
+                    </select>
+                </p>
+                <p v-show="sourceType == 0"> <label>自定义：</label>
+                    <input type="text" v-model="customNum" placeholder="输入组件容器的个数" class="form-input"  style="width: 286px;">
+                </p>
+            </div>
+            <div class="creat-preview">
+                <p>模板预览</p>
+                <div class="creat-img">
+                    <img :src="src" style="transform: translateY(-25px)">
+                </div>
+            </div>
+        </div>
+        <div class="footer">
+            <span @click="closeLayer" class="btn">取消</span>
+            <span @click="creatDashboard" class="btn">确认</span>
+        </div>
+    </div>
+</body>
+<script src="../static/javascripts/jquery-3.2.1.min.js"></script>
+<script src="../static/javascripts/vue.min.js"></script>
+<script src="../static/plugin/layer-3.1.1/layer.js"></script>
+<script src="../static/javascripts/axios.js"></script>
+<script src="../static/javascripts/ibdmc.until.js"></script>
+<script src="../config/default.js"></script>
+<script>
+    var creatApp = new Vue({
+        el: "#creat_add",
+        data: {
+            api: Config.api,
+            name: '',//模板标题
+            sourceType: "1",
+            customNum: 4,//容器数量
+            templateId: '1',//模板id
+            src:'',//模板对应图片路径
+            templates: [],//模板集合
+            templateSet: '0'//选择的模板id
+        },
+        watch:{
+            templateId:function(newVal,oldVal){
+                var _this = this;
+                this.templates.forEach(function(val,key){
+                    if(val._id == newVal){
+                        _this.src = '../static/images/template/'+val.img;
+                    }
+                });
+            }
+        },
+        created: function() {
+            axios.get(this.api+'/template/list').then(res =>{
+                console.log(res)
+                this.templates = res.data.data;
+                this.templateId = res.data.data[0]._id;
+                this.src = '../static/images/template/'+res.data.data[0].img;
+            })
+
+        },
+        methods: {
+            creatDashboard: function() {
+                var _this = this;
+                $.ajax({
+                    url: _this.api + '/dashboard/ishad',
+                    type: 'post',
+                    dataType: 'json',
+                    data: {
+                        name: _this.name,
+                    },
+                    success: function(res) {
+                        console.log(res);
+                        emitRoot({name:_this.name,templateId:_this.templateId,number:_this.customNum,type:_this.sourceType},"creatAppFun");
+                        _this.closeLayer();
+                    },
+                    error: function(msg) {
+                        layer.msg(msg.responseText);
+                    }
+                })
+            },
+            closeLayer:function(){
+                var index = parent.layer.getFrameIndex(window.name);
+                parent.layer.close(index);
+            }
+        }
+    })
+</script>
+
+</html>

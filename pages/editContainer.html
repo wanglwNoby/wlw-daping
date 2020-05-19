@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <link rel="stylesheet" href="../static/plugin/element-2.3.9/index.css">
+  <link rel="stylesheet" href="../static/stylesheets/page.css">
+  <link rel="stylesheet" href="../static/stylesheets/edit-border.css">
+  <style>
+    .el-upload-list--picture .el-upload-list__item-status-label {
+      right: -35px;
+      top: -7px;
+      text-align: center !important;
+    }
+    .upload-demo {
+      width: 70%;
+      margin-left: 85px;
+    }
+    .preview-box {
+      border: 1px dashed #646484;
+    }
+    .uploadRecent {
+      width: 95px;
+      height: 92px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      position: relative;
+      margin: 2px;
+    }
+    .uploadRecent i {
+      position: absolute;
+      background: red;
+      border-radius: 10px;
+      top: 0;
+      right: 0;
+    }
+    .recent-image-list {
+      display: flex;width: 362px;margin-left: 44px;flex-wrap: wrap;
+    }
+    .active-recent {
+      border: 1px dashed white;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="borderApp" class="section" v-cloak>
+    <div class="content">
+      <div class="content-body" style="overflow: auto;display: flex;flex-direction: column;">
+        <div style="display: flex;align-items: center;margin: 5px 5px 5px 130px;">
+          <label style="margin-right: 4px;">大屏名称：</label>
+          <input type="text" class="form-input" v-model="dashboardName" style="width: 260px;margin-right: 10px;">
+        </div>
+        <div class="content-body">
+          <ul class="classify">
+            <li @click="{leftTab=1}" :class="{active:leftTab==1}">背景</li>
+            <li @click="{leftTab=2}" :class="{active:leftTab==2}">内边距</li>
+          </ul>
+          <div class="detail-config">
+            <!-- 背景 -->
+            <div class="config-left" v-show="leftTab == 1">
+              <div>
+                <label>配置选择：</label>
+                <select v-model="colorOrImg" class="form-input">
+                  <option value="0">背景色</option>
+                  <option value="1">背景图</option>
+                </select>
+              </div>
+              <div v-show="colorOrImg == 0">
+                <label>类型：</label>
+                <select v-model="sampleOrLine" class="form-input">
+                  <option value="0">纯色+透明度</option>
+                  <option value="1">渐变色</option>
+                </select>
+              </div>
+
+              <!-- 颜色选择器 -->
+              <div v-show="colorOrImg == 0 && sampleOrLine == 0" style="display: flex;align-items: center;">
+                <label style="margin-right: 4px;">颜色：</label>
+                <input type="text" class="form-input" v-model="color1" style="width: 220px;margin-right: 10px;">
+                <el-color-picker v-model="color1" show-alpha size="mini"></el-color-picker>
+              </div>
+
+              <!-- 渐变色调节器 -->
+              <div v-show="colorOrImg == 0 && sampleOrLine == 1">
+                <label>方向：</label>
+                <select v-model="linearDirector" class="form-input">
+                  <option value="0">由上向下</option>
+                  <option value="1">由左向右</option>
+                  <option value="2">由左上向右下</option>
+                  <option value="3">由左下向右上</option>
+                </select>
+              </div>
+              <div v-show="colorOrImg == 0 && sampleOrLine == 1" style="display: flex;align-items: center;">
+                <label style="margin-right: 4px;">颜色1：</label>
+                <input type="text" class="form-input" v-model="lineColor[0]" style="width: 220px;margin-right: 10px;">
+                <el-color-picker v-model="lineColor[0]" show-alpha size="mini"></el-color-picker>
+              </div>
+              <div v-show="colorOrImg == 0 && sampleOrLine == 1" style="display: flex;align-items: center;">
+                <label style="margin-right: 4px;">颜色2：</label>
+                <input type="text" class="form-input" v-model="lineColor[1]" style="width: 220px;margin-right: 10px;">
+                <el-color-picker v-model="lineColor[1]" show-alpha size="mini"></el-color-picker>
+              </div>
+              <div v-show="colorOrImg == 0 && sampleOrLine == 1" style="display: flex;align-items: center;">
+                <label style="margin-right: 4px;">颜色3：</label>
+                <input type="text" class="form-input" v-model="lineColor[2]" style="width: 220px;margin-right: 10px;">
+                <el-color-picker v-model="lineColor[2]" show-alpha size="mini"></el-color-picker>
+              </div>
+              <div v-show="colorOrImg == 0 && sampleOrLine == 1" style="display: flex;align-items: center;">
+                <label style="margin-right: 4px;">颜色4：</label>
+                <input type="text" class="form-input" v-model="lineColor[3]" style="width: 220px;margin-right: 10px;">
+                <el-color-picker v-model="lineColor[3]" show-alpha size="mini"></el-color-picker>
+              </div>
+
+
+
+              <!-- 上传图片 -->
+              <div v-show="colorOrImg == 1" style="height: 162px;">
+                <label>上传图片：</label>
+                <el-upload class="upload-demo" ref="upload" name="bgImage" limit="1" :action="api + '/dashboard/upload'" :auto-upload="false"
+                  :on-change="onChange" list-type="picture">
+                  <el-button slot="trigger" size="small" type="primary">选取文件</el-button>
+                </el-upload>
+              </div>
+
+              <!-- 最近上传的图片，滚动删除 -->
+              <div v-show="colorOrImg == 1 && recentImageList.length > 0">
+                <label>最近上传：</label>
+                <div style="height: 196px;overflow: auto;" class="recent-image-list">
+                  <div v-for="item in recentImageList" class="uploadRecent">
+                    <img @click="checkRecent(item.filename)" :class="{'active-recent': bgImageUrl == item.filename}" width="80px" height="80px"
+                      :src="api + '/' + item.filename" alt="">
+                    <i class="el-icon-close" @click="deleteRecentImage(item._id, item.filename)"></i>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 内边距 -->
+            <div class="config-left" v-show="leftTab == 2">
+              <div style="display: flex;align-items: center;">
+                <label style="margin-right: 4px;">上边距：</label>
+                <input type="number" min="0" class="form-input" v-model="paddingContent[0]" style="width: 260px;margin-right: 10px;">
+              </div>
+              <div style="display: flex;align-items: center;">
+                <label style="margin-right: 4px;">右边距：</label>
+                <input type="number" min="0" class="form-input" v-model="paddingContent[1]" style="width: 260px;margin-right: 10px;">
+              </div>
+              <div style="display: flex;align-items: center;">
+                <label style="margin-right: 4px;">下边距：</label>
+                <input type="number" min="0" class="form-input" v-model="paddingContent[2]" style="width: 260px;margin-right: 10px;">
+              </div>
+              <div style="display: flex;align-items: center;">
+                <label style="margin-right: 4px;">左边距：</label>
+                <input type="number" min="0" class="form-input" v-model="paddingContent[3]" style="width: 260px;margin-right: 10px;">
+              </div>
+            </div>
+
+
+            <!-- 效果预览 -->
+            <div class="config-preview">
+              <p class="header">效果预览
+                <span @click="refreshViewBox"></span>
+              </p>
+              <div class="preview">
+                <div ref="viewBox" class="preview-box"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+    <div class="footer">
+      <span @click="closeLayer" class="btn">取消</span>
+      <span @click="saveConfig" class="btn">确认</span>
+    </div>
+  </div>
+  <script src="../static/javascripts/vue.min.js"></script>
+  <script src="../static/javascripts/axios.js"></script>
+  <script src="../static/javascripts/jquery-3.2.1.min.js"></script>
+  <script src="../static/plugin/element-2.3.9/index.js"></script>
+  <script src="../static/javascripts/ibdmc.until.js"></script>
+  <script src="../config/default.js"></script>
+  <script>
+    let borderApp = new Vue({
+      el: "#borderApp",
+      data: {
+        api: Config.api,
+
+        colorOrImg: 0,  // 0 - 背景色 / 1 - 背景图
+        sampleOrLine: '0',  // 0 - 纯色 / 1 - 渐变色
+        color1: '',   // 纯色背景色 rgba
+        linearDirector: '0',  // 渐变色 方向
+        lineDireArr: ['to bottom', 'to right', 'to bottom right', 'to top right'],   // 渐变色 方向数组
+        lineColor: [],   // 渐变色  颜色数组
+        paddingContent: [0,0,0,0], // 内边距数组
+        header: 0,
+        bgImageUrl: '',  // 文件列表 数组
+
+        param: '',  // FromData 表单数据
+        recentImageList: [],   // 最近上传图片列表
+        curRecent: '',   // 选中图片的 filename
+        uploadImg: '',   // 上传的图片的地址
+        dashboardName: 'dashboard-default', // dashboard 名称
+
+        leftTab: 1, // 左侧tab 选择
+      },
+      mounted: function () {
+        this.dashboardName = this.getUrlQuery('name') // 获取路径上的 dashboard 名字
+        if (this.getUrlQuery('bg')) {
+          this.colorOrImg = 1   // 如果是有背景图，那么切换到背景图的状态
+        } else if (this.getUrlQuery('contentStyle').indexOf('linear') >= 0) {
+          this.colorOrImg = 0
+          this.sampleOrLine = 1
+
+          var line_arr = this.getUrlQuery('contentStyle').substring(16, this.getUrlQuery('contentStyle').length - 1).split(',rgb')
+          this.linearDirector = this.lineDireArr.indexOf(line_arr[0])
+          line_arr.splice(0, 1)
+          for(var i = 0; i < line_arr.length; i++) {
+            this.lineColor[i] = 'rgb' + line_arr[i]
+          }
+        } else {
+          this.colorOrImg = 0
+          this.sampleOrLine = 0
+          this.color1 = this.getUrlQuery('contentStyle')
+        }
+        if(this.getUrlQuery('pad')) {
+          var padarr = this.getUrlQuery('pad').split(' ')
+          for(var m = 0; m < this.paddingContent.length; m++) {
+            if(padarr[m]) {
+              this.paddingContent[m] = parseInt(padarr[m])
+            } else {
+              this.paddingContent[m] = '0'
+            }
+          }
+        }
+
+        var _this = this
+        // 请求最近上传的图片 最多六张
+        axios.get( _this.api + '/recent_image/list/0' )
+          .then(function (res) {
+            _this.recentImageList = res.data.data
+            Vue.nextTick(function (params) {
+              if(_this.getUrlQuery('bg')) {
+                _this.bgImageUrl = _this.getUrlQuery('bg')
+                _this.refreshViewBox()
+              }
+            })
+          })
+          .catch(function (error) {
+            console.log(error);
+          });
+      },
+      watch: {
+        color1: function () {
+          this.refreshViewBox()
+        },
+        lineColor: function () {
+          this.refreshViewBox()
+        },
+        linearDirector: function () {
+          this.refreshViewBox()
+        },
+        bgImageUrl: function () {
+          this.refreshViewBox()
+        },
+        paddingContent: function () {
+          this.refreshViewBox()
+        }
+      },
+      methods: {
+        getUrlQuery: function (name) {
+          var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)"); //构造一个含有目标参数的正则表达式对象
+          var r = window.location.search.substr(1).match(reg);  //匹配目标参数
+          if (r != null) return unescape(r[2]); return null; //返回参数值
+        },
+        checkRecent: function (filename) {
+          if(this.bgImageUrl == filename) { // 两次点击同一图片，则取消选中，路径更改为上传图片的路径
+            this.bgImageUrl = this.uploadImg
+          } else {
+            this.bgImageUrl = filename
+          }
+        },
+        deleteRecentImage: function (_id, filename) {
+          var _this = this
+          axios.get(_this.api + '/recent_image/delete/' + _id + '/' + filename)
+            .then(function (response) {
+              var res = response.data
+              if(res.result) {
+                for (var i = 0; i < _this.recentImageList.length; i++) {
+                  if (_this.recentImageList[i]._id == _id) {
+                    _this.recentImageList.splice(i, 1)
+                    break;
+                  }
+                }
+              } else {
+                console.log('删除失败')
+              }
+            })
+        },
+        onChange: function (file, fileList) { // 上传图片时，更新 FormData
+          this.bgImageUrl = file.url  // 通过watch 来更新视图
+          this.uploadImg = file.url  // 临时存储上传的图片的路径
+          this.param = new FormData()
+          this.param.append('ibdmc', file.raw, file.name)
+        },
+        saveConfig: function (data) {
+          let config = {
+            headers: {
+              'Content-Type': 'multipart/form-data'
+            }
+          }
+          var _this = this
+
+          // 背景图片
+          if(this.colorOrImg == 1){
+            if (this.bgImageUrl.indexOf('blob') >= 0) {  // 服务器上没有，需要上传该图片
+              this.param.append('type', 0)
+              axios.post(_this.api + '/recent_image/upload', this.param, config)
+                .then(function (result) {
+                  _this.bgImageUrl = result.data.data.img
+                  // 作用到父页面
+                  var bg = 'url(' + _this.api + '/' + result.data.data.img + ') center center / cover no-repeat'
+                  emitRoot(bg, 'setContent', 'app')
+
+                  // 更改主页面的 数据  名字 和 当前背景图片的名字 用来读取的时候 做选中状态
+                  emitRoot({ 'name': _this.dashboardName, 'imgname': _this.bgImageUrl }, 'setbgAndName', 'app')
+                  // 关闭弹窗
+                  emitRoot('', 'closeAll', 'layer')
+                })
+                .catch(function (err) {
+                  console.log(err)
+                })
+            } else {
+
+              // 更改主页面的 数据  名字 和 当前背景图片的名字 用来读取的时候 做选中状态
+              emitRoot({ 'name': this.dashboardName, 'imgname': this.bgImageUrl }, 'setbgAndName', 'app')
+
+              // 关闭弹窗
+              emitRoot('', 'closeAll', 'layer')
+            }
+          }
+
+          // 纯色背景
+          if(this.colorOrImg == 0 && this.sampleOrLine == 0) {
+            // 更改主页面的 数据  名字 和 当前背景图片的名字 用来读取的时候 做选中状态
+            emitRoot({ 'name': this.dashboardName, 'imgname': "" }, 'setbgAndName', 'app')
+            // 关闭弹窗
+            emitRoot('', 'closeAll', 'layer')
+          }
+
+          // 渐变背景
+          if(this.colorOrImg == 0 && this.sampleOrLine == 1) {
+            // 更改主页面的 数据  名字 和 当前背景图片的名字 用来读取的时候 做选中状态
+            emitRoot({ 'name': this.dashboardName, 'imgname': "" }, 'setbgAndName', 'app')
+            // 关闭弹窗
+            emitRoot('', 'closeAll', 'layer')
+          }
+
+          // 渐变背景
+          if (this.colorOrImg == 2) {
+
+            // 关闭弹窗
+            emitRoot('', 'closeAll', 'layer')
+          }
+
+        },
+        refreshViewBox: function () {
+          if(this.colorOrImg == 0 && this.sampleOrLine == 0) {
+            this.$refs.viewBox.style.background = this.color1
+
+            // 作用到父页面
+            emitRoot(this.color1, 'setContent', 'app')
+          } else if (this.colorOrImg == 0 && this.sampleOrLine == 1) {
+            var colorStr = ''
+            for(var i=0; i < this.lineColor.length; i++) {
+              if(this.lineColor[i]) {
+                colorStr += ',' + this.lineColor[i]
+              }
+            }
+            var linear = 'linear-gradient(' + this.lineDireArr[this.linearDirector] + colorStr + ')';
+            this.$refs.viewBox.style.background = linear
+
+            // 作用到父页面
+            emitRoot(linear, 'setContent', 'app')
+          } else if (this.colorOrImg == 1) {
+
+            var bg = ''
+            if(this.bgImageUrl.indexOf('blob') >= 0) { // 预览的路径。服务器上还没有该图片
+              bg = 'url(' + this.bgImageUrl + ') center center / cover no-repeat'
+            } else { // 最近上传的路径，服务器上存在的图片
+              bg = 'url(' + this.api + '/' + this.bgImageUrl + ') center center / cover no-repeat'
+            }
+            this.$refs.viewBox.style.background = bg // 修改右侧预览的背景图
+
+            // 作用到父页面
+            emitRoot(bg, 'setContent', 'app')
+          }
+
+          // 改变内边距，是所有情况下都需要的
+          var padding_arr = ''
+          for (var i = 0; i < this.paddingContent.length; i++) {
+            padding_arr += this.paddingContent[i] + 'px '
+          }
+
+          // 作用到父页面
+          emitRoot(padding_arr, 'setContentPadding', 'app')
+        },
+        closeLayer: function () {
+          if(window.parent.app.contentStyle.indexOf('blob') >= 0) {
+            // 作用到父页面 清空父页面的背景图，防止提交blob:... 的预览路径
+            emitRoot('', 'setContent', 'app')
+            // 更改主页面的 数据  名字 和 当前背景图片的名字 用来读取的时候 做选中状态
+            emitRoot({ 'imgname': '' }, 'setbgAndName', 'app')
+          }
+
+          // 关闭弹窗
+          emitRoot('', 'closeAll', 'layer')
+        },
+        toggleActive: function (num) {
+          this.header = num;
+        }
+
+      }
+    })
+  </script>
+</body>
+
+</html>

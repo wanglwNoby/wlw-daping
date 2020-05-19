@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- <meta name="viewport" content="target-densitydpi=device-dpi, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no"> -->
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>iBDMC</title>
+    <link rel="stylesheet" href="./static/plugin/font-awesome-4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" type="text/css" href="./static/stylesheets/index.css">
+    <style>
+        .vue-grid-item {
+            background: #5a7da7;
+        }
+        .vue-grid-item.selectOne {
+            border: 1px dashed white;
+        }
+        .menu-header {
+          font-size: .13rem;
+          padding: 0px 10px;
+          height: 40px;
+          line-height: 40px;
+        }
+        .vue-grid-item>.vue-resizable-handle{z-index:10;}
+        #content:-webkit-full-screen {
+          width: 100%;
+          height: 100%;
+        }
+    </style>
+</head>
+<body>
+    <section id="app">
+        <header>
+            <img src="./static/images/index/logo1.png" alt="emp-logo">
+            <p>Intelligent Big Data Manage Center</p>
+        </header>
+        <div class="container">
+            <div class="content">
+                <!-- <div class="contentHead">
+                    <p class="menuPTitle">{{ dasboardTitle }}</p>
+                </div> -->
+                <div id="dashboardContainer" style="flex:1;overflow: auto;">
+                    <div id="content" :style="{height:'100%', background: contentStyle, padding: contentPadding, boxSizing: 'border-box'}" ref="contentHeight">
+                        <grid-layout :layout="layout" :margin="marginSize" :col-num="colNum" :row-height="rowHeight" :auto-size="true" :is-draggable="draggable" :is-resizable="resizable" :vertical-compact="true" :use-css-transforms="true">
+                            <grid-item v-for="(item,layout_index) in layout"
+                            :class="{selectOne:selectItemIndex === layout_index}"
+                            :is-resizable="true" :x="item.x" :y="item.y" :w="item.w" :h="item.h" :i="item.i"
+                            @click.native="changeItemId(layout_index)"
+                            @resize="resizeCharts"
+                            @resized="resizeCharts"
+                            :style="{backgroundColor:item.bgstyle.bgcolorstyle,backgroundImage:item.bgstyle.bgimagestyle,backgroundSize:'cover'}">
+                                <component v-bind="item.binddata" v-for="item in item.componentList" v-bind:is="item.component"></component>
+                                <component v-if="item1.echartsName == 'eChartsTemplate'" v-bind:e-charts-option="item1.echartsData" :echartid= "item.i" v-for="item1 in item.echartsList" v-bind:is="item1.echartsName"></component>
+                                <component v-else v-bind="item1.echartsData" :height= "item.h" :width= "item.w" v-for="item1 in item.echartsList" v-bind:is="item1.echartsName"></component>
+                            </grid-item>
+                        </grid-layout>
+                    </div>
+                </div>
+            </div>
+
+            <div class="menuRight">
+                <div class="menuTitle">
+                    <img class="menuImg" src="./static/images/index/opera.png" alt="">
+                    <p class="menuPTitle" style="font-size: 13px;">操作</p>
+                </div>
+                <div class="menuUl">
+                  <div class="menu-header">基础操作</div>
+                    <ul class="menu-child">
+                        <li onclick="createDashboardJudge()">
+                            <a href="javascript:void(0);">
+                                <i class="fa fa-circle-o" style="width: 16px;"></i>
+                                <p class="menuPTitle">新建</p>
+                            </a>
+                        </li>
+                        <li onclick="editDashboard()">
+                            <a href="javascript:void(0);">
+                                <i class="fa fa-circle-o" style="width: 16px;"></i>
+                                <p class="menuPTitle">打开</p>
+                            </a>
+                        </li>
+                        <li @click="previewDashboard">
+                          <a href="javascript:void(0);">
+                            <i class="fa fa-circle-o" style="width: 16px;"></i>
+                            <p class="menuPTitle">预览</p>
+                          </a>
+                        </li>
+                        <li>
+                            <a @click="stagingDashboard">
+                                <i class="fa fa-circle-o" style="width: 16px;"></i>
+                                <p class="menuPTitle">暂存</p>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="javascript:void(0);">
+                                <i class="fa fa-circle-o" style="width: 16px;"></i>
+                                <p class="menuPTitle">发布</p>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+                <div class="menuUl">
+                  <div class="menu-header">面板操作</div>
+                  <ul class="menu-child">
+                    <li onclick="editContainer()"> <!-- dashboard的名称 放到这里更改 -->
+                      <a href="javascript:void(0);">
+                        <i class="fa fa-circle-o" style="width: 16px;"></i>
+                        <p class="menuPTitle">面板属性</p>
+                      </a>
+                    </li>
+                    <li>
+                      <a @click="addContainer">
+                        <i class="fa fa-circle-o" style="width: 16px;"></i>
+                        <p class="menuPTitle">添加组件</p>
+                      </a>
+                    </li>
+                  </ul>
+                </div>
+                <div class="menuUl">
+                  <div class="menu-header">组件操作</div>
+                    <ul class="menu-child">
+                      <li onclick="editComponent()">
+                        <a href="javascript:void(0);">
+                          <i class="fa fa-circle-o" style="width: 16px;"></i>
+                          <p class="menuPTitle">组件属性</p>
+                        </a>
+                      </li>
+                      <li onclick="editBorder()">
+                        <a href="javascript:void(0);">
+                          <i class="fa fa-circle-o" style="width: 16px;"></i>
+                          <p class="menuPTitle">组件样式</p>
+                        </a>
+                      </li>
+                      <li @click="deleteContainer">
+                          <a href="javascript:void(0);">
+                              <i class="fa fa-circle-o" style="width: 16px;"></i>
+                              <p class="menuPTitle">删除</p>
+                          </a>
+                      </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <footer>
+          <p>Copyright © NetInfo 2016 - 2018 All right reserved.</p>
+        </footer>
+    </section>
+
+    <script src="./static/javascripts/vue.min.js"></script>
+    <script src="./static/javascripts/jquery-3.2.1.min.js"></script>
+    <script src="./static/javascripts/echarts.min.js"></script>
+    <script src="./static/plugin/layer-3.1.1/layer.js"></script>
+    <script src="./static/javascripts/vue-grid-layout.min.js"></script>
+    <script src="./static/javascripts/ibdmc.until.js"></script>
+    <script src="./static/javascripts/components.js"></script>
+    <script src="./static/javascripts/axios.js"></script>
+    <script src="./config/default.js"></script>
+    <script src="./static//map/china.js"></script>
+    <script>
+        // 模板数据
+        // [{
+        //     "x": 0,
+        //     "y": 0,
+        //     "w": 2,
+        //     "h": 1,
+        //     "i": "0",
+        //     componentList: [],
+        //     bgstyle:{}
+        // }]
+        Vue.prototype.$axios = axios;
+        var containerApp = new Vue();
+        var app = new Vue({
+            el: "#app",
+            data: {
+                api: Config.api,
+                dasboardTitle: '', //当前编辑大屏标题
+                layout: [],
+                draggable: true,
+                resizable: true,
+                marginSize: [20, 30],
+                rowHeight: 20,
+                colNum:24,
+                index: 0,
+                selectItemIndex: '',
+                outHeight: 0,
+                rowNum: 1,
+                totalRow:0,
+                contentStyle: '',  // 根容器背景
+                bgImageName: '',  // 背景图的名字
+                contentPadding: '0px 0px 0px 0px', // 内边距
+
+                currentId: '' // 当前编辑的dashboard id 如果没有，则是新建的
+            },
+            components: {
+                "GridLayout": VueGridLayout.GridLayout,
+                "GridItem": VueGridLayout.GridItem,
+                "cornerTemplate":cornerTemplate,
+                "titleTemplate":titleTemplate,
+                "borderTemplate":borderTemplate,
+                "backgroundTemplate":backgroundTemplate
+            },
+            mounted: function() {
+                var that = this;
+                /*
+                window.onresize = function() {
+                    that.outHeight = that.$refs.contentHeight.offsetHeight;
+                    console.log( that.outHeight)
+                    that.rowHeight = (that.outHeight - (that.rowNum + 1) * that.marginSize[1]) / that.rowNum
+                    console.log(that.rowHeight)
+                };
+                */
+            },
+            watch:{
+                layout:{
+                    handler:function(newVal,oldVal){
+                        for (var k = 0; k < newVal.length; k++) {
+                            if ((newVal[k].y + newVal[k].h) > this.rowNum) {
+                                this.rowNum = newVal[k].y + newVal[k].h;
+                            }
+                        }
+                    },
+                    deep:true
+                }
+            },
+            computed:{
+                bgcolorstyle:function(){
+                    return '#f0f'
+                },
+                bgimagestyle:function(){
+                    return ''
+                }
+            },
+            methods: {
+              previewDashboard: function () { // 大屏预览
+                var element = document.getElementById('content')
+                var requestMethod = element.requestFullScreen || element.webkitRequestFullScreen || element.mozRequestFullScreen || element.msRequestFullScreen;
+                if (requestMethod) {
+                  requestMethod.call(element);
+                } else if (typeof window.ActiveXObject !== "undefined") {
+                  var wscript = new ActiveXObject("WScript.Shell");
+                  if (wscript !== null) {
+                    wscript.SendKeys("{F11}");
+                  }
+                }
+
+              },
+              cleanDashboard: function () {
+                this.dasboardTitle = '' //当前编辑大屏标题
+                this.layout = []
+                this.contentStyle = ''  // 根容器背景
+                this.bgImageName = ''  // 背景图的名字
+
+                this.currentId = '' // 清除 id
+              },
+              renderDashboard: function (dashboard) {
+                this.currentId = dashboard._id
+
+                this.dasboardTitle = dashboard.name
+                this.contentStyle = dashboard.root.background
+                this.layout = dashboard.data.layout
+                this.draggable = dashboard.data.config.draggable
+                this.resizable = dashboard.data.config.resizeable
+                this.marginSize = dashboard.data.config.margin_size
+                this.rowHeight = dashboard.data.config.row_height
+                this.colNum = dashboard.data.config.col_number
+              },
+              stagingDashboard: function (type) { // 暂存 1: 创建dashboard时调用
+                // 通过 current id 判断是新增，还是更新
+                var _this = this
+                var json_data = {
+                  name: _this.dasboardTitle,
+                  root: {
+                    background: _this.contentStyle
+                  },
+                  data: {
+                    layout: _this.layout,
+                    config: {
+                      draggable: _this.draggable,
+                      resizeable: _this.resizable,
+                      margin_size: _this.marginSize,
+                      row_height: _this.rowHeight,
+                      col_number: _this.colNum,
+                    }
+                  }
+                };
+                var path = ''
+                if(this.currentId) { // 更新
+                  json_data['id'] = this.currentId
+                  path = _this.api + '/dashboard/update'
+                } else { // 新建
+                  path = _this.api + '/dashboard/create'
+                }
+                $.ajax({
+                  url: path,
+                  type: 'POST',
+                  contentType: 'application/json',
+                  data: JSON.stringify(json_data),
+                  success: function (res) {
+                    if(res.result) {
+                      layer.msg('操作成功');
+                      if(res.data._id) {
+                        _this.currentId = res.data._id
+                      }
+                      if(type == 1) { // 新建前判断
+                        _this.cleanDashboard() // 清空数据
+                        layer.closeAll() // 关闭弹窗
+                        createDashboard() // 弹出新建页面
+                      }
+                    } else {
+                      layer.msg('操作失败');
+                    }
+
+                  },
+                  error: function (e) {
+                    console.log(e)
+                  }
+                })
+              },
+              resizeCharts: function(i){
+                if(document.getElementById('chart-' + i)){
+                    var reCharts = echarts.getInstanceByDom(document.getElementById('chart-' + i));
+                    reCharts.resize()
+                }
+              },
+              setContent: function (data) { // 修改背景
+                this.contentStyle = data
+              },
+              setbgAndName: function (data) {
+                this.dasboardTitle = data.name ? data.name : this.dasboardTitle
+                this.bgImageName = data.imgname
+              },
+              setContentPadding: function (pad) {
+                this.contentPadding = pad
+              },
+              addContainer: function() {
+                var i_arr = []
+                for(var i = 0; i < this.layout.length; i++) {
+                  i_arr.push(this.layout[i].i)
+                }
+                this.layout.push({
+                    "x": 0,
+                    "y": 0,
+                    "w": 6,
+                    "h": 4,
+                    "i": Math.max(...i_arr) + 1 + "",
+                    componentList: [],
+                    echartsList: [],
+                    bgstyle:{
+                      bgcolorstyle: '',
+                      bgimagestyle: ''
+                    }
+                });
+              },
+              deleteContainer: function() {
+                  if (this.selectItemIndex !== '') {
+                      this.layout.splice(this.selectItemIndex, 1)
+                      this.selectItemIndex = '';
+                  }
+              },
+              changeMargin: function(align, vertical) {
+                  this.marginSize.splice(0, 2, align, vertical)
+              },
+              // 给容器添加某个组件
+              addComponentTemplate: function(componentName,bindData,configList) {
+                  if (this.selectItemIndex === "") {
+                        return
+                  } else {
+                        if(configList){
+                            for(let i=0;i<this.layout[this.selectItemIndex].echartsList.length;i++){
+                                if(this.layout[this.selectItemIndex].echartsList[i].echartsName==componentName){
+                                    this.layout[this.selectItemIndex].echartsList[i].echartsData =Object.assign({},bindData);
+                                    this.layout[this.selectItemIndex].echartsList[i].echartsConfigList = configList;
+                                    return
+                                }else{
+                                    this.layout[this.selectItemIndex].echartsList = [];    //组件切换时重置
+                                }
+                            }
+                            this.layout[this.selectItemIndex].echartsList.push({
+                                echartsName: componentName,         //组件名称
+                                echartsData: bindData,              //组件数据
+                                echartsConfigList: configList       //组件配置
+                            })
+                        }else{
+                            if(componentName == 'bgstyle'){
+                                this.layout[this.selectItemIndex].bgstyle = bindData;
+                            }
+                            for(let i=0;i<this.layout[this.selectItemIndex].componentList.length;i++){
+                                if(this.layout[this.selectItemIndex].componentList[i].component==componentName){
+                                    this.layout[this.selectItemIndex].componentList[i].binddata = bindData;
+                                    return
+                                }
+                            }
+                            this.layout[this.selectItemIndex].componentList.push({
+                                component: componentName,
+                                binddata:bindData
+                            })
+                        }
+                    }
+                },
+              //读取eCharts图
+              readechartsCfg:function(){
+                  if(this.selectItemIndex === ""){
+                      return;
+                  }
+                  else{
+                    if(this.layout[this.selectItemIndex]) {
+                      return this.layout[this.selectItemIndex].echartsList;
+                    }
+                  }
+              },
+              //读取容器组件列表
+              readComponentCfg:function(){
+                  if (this.selectItemIndex === "") {
+                          return
+                  } else {
+                    if (this.layout[this.selectItemIndex]) {
+                      return this.layout[this.selectItemIndex].componentList;
+                    }
+                  }
+              },
+              // 删除容器下的某个组件
+              delComponentTemplate: function(componentName) {
+                  if (this.selectItemIndex == "") {
+                      return
+                  } else {
+                      this.layout[this.selectItemIndex].componentList = this.layout[this.selectItemIndex].componentList.filter((item) => {
+                          return item.component != componentName;
+                      })
+                  }
+              },
+              changeItemId: function(index) {
+                if(this.selectItemIndex === index) {
+                  this.selectItemIndex = ''
+                } else {
+                  this.selectItemIndex = index
+                }
+              }
+            }
+        })
+
+      /**新建dashboard**/
+      function createDashboard() {
+          $.modalOpen({
+              id: "ibdmc",
+              title: "创建Dashboard",
+              url: './pages/createDashboard.html',
+              width: "900px",
+              height: "550px"
+          });
+      }
+
+      /**新建前判断**/
+      function createDashboardJudge(){
+          if(app.layout.length == 0){
+              createDashboard();
+              return false;
+          }
+          layer.open({
+              title:'提示',
+              area:['350px','150px'],
+              content:'保存并发布当前编辑的内容?',
+              btn: ['暂存', '发布', '覆盖'],
+              yes:function(index,layero){
+                  app.stagingDashboard('1')
+              },
+              btn2:function(index,layero){
+                  layer.msg('发布', { icon: 1 });
+                  layer.closeAll()
+              },
+              btn3:function(index,layero){
+                  layer.closeAll()
+                app.cleanDashboard()
+                createDashboard()
+              }
+          })
+      }
+
+      /**选择编辑已有的dashboard**/
+      function editDashboard() {
+          $.modalOpen({
+              id: "ibdmc",
+              title: "编辑已有大屏",
+              url: './pages/editDashboard.html?id=' + app.currentId,
+              width: "400px",
+              height: "500px"
+          });
+      }
+
+      /**编辑根容器**/
+      function editContainer(){
+          $.modalOpen({
+              id: "ibdmc",
+              title: "编辑根容器",
+              url: './pages/editContainer.html?bg=' + app.bgImageName + '&name=' + app.dasboardTitle + '&contentStyle=' + app.contentStyle + '&pad=' + app.contentPadding,
+              width: "1000px",
+              height: "599px"
+          });
+      }
+
+      /**编辑边框**/
+      function editBorder(){
+          var _index = app.selectItemIndex;
+          $.modalOpen({
+              id:"ibdmc",
+              title:"编辑边框",
+              url:'./pages/editBorder.html',
+              width:'1000px',
+              height:'599px'
+          })
+      }
+
+      /**编辑组件**/
+      function editComponent() {
+        $.modalOpen({
+          id: "ibdmc",
+          title: "编辑组件",
+          url: './pages/editComponent.html',
+          width: '1000px',
+          height: '599px'
+        })
+      }
+
+      function creatAppFun(data){
+          app.dasboardTitle = data.name;
+          if(data.type==1){
+              console.log('模板')
+          }else{
+              console.log('自定义');
+              app.layout = [];
+              app.index = 0;
+              var x = 0;
+              for(var i=0;i<data.number;i++){
+                  app.layout.push({x:x,y:0,w:6,h:6,i:app.index,componentList:[],echartsList:[],bgstyle:{
+                    bgcolorstyle: '',
+                    bgimagestyle: ''
+                  }});
+                  x += 6;
+                  app.index++;
+                  if(x>=app.colNum){x = 0}
+              }
+          }
+          console.log(data)
+      }
+
+    </script>
+</body>
+</html>

@@ -1,0 +1,83 @@
+<!doctype html>
+<html>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta http-equiv="X-UA-Compatible" content="ie=edge">
+</html>
+<body style="background: black">
+    <!-- 四角 -->
+    <div style="width: 300px;height: 180px;margin:100px;position: relative;">
+        <div style="position:absolute;left:0;top:0;">
+            <div style="position: absolute;width: 15px;height: 5px;background: #fff;left:0;top:0;"></div>
+            <div style="position: absolute;left: 0;top: 0;width: 5px;height: 15px;background:#fff;"></div>
+        </div>
+        <div style="position:absolute;right:0;top:0;">
+            <div style="position: absolute;width: 15px;height: 5px;background: #fff;right:0;top:0;"></div>
+            <div style="position: absolute;right: 0;top: 0;width: 5px;height: 15px;background:#fff;"></div>
+        </div>
+        <div style="position:absolute;right:0;bottom:0;">
+            <div style="position: absolute;width: 15px;height: 5px;background: #fff;right:0;bottom:0;"></div>
+            <div style="position: absolute;right: 0;bottom: 0;width: 5px;height: 15px;background:#fff;"></div>
+        </div>
+        <div style="position:absolute;left:0;bottom:0;">
+            <div style="position: absolute;width: 15px;height: 5px;background: #fff;left:0;bottom:0;"></div>
+            <div style="position: absolute;left: 0;bottom: 0;width: 5px;height: 15px;background:#fff;"></div>
+        </div>
+    </div>
+    <!-- 左上，右下 -->
+    <div style="width: 300px;height: 180px;margin:100px;position: relative;">
+        <div style="position:absolute;left:0;top:0;">
+            <div style="position: absolute;width: 15px;height: 5px;background: #fff;left:0;top:0;"></div>
+            <div style="position: absolute;left: 0;top: 0;width: 5px;height: 15px;background:#fff;"></div>
+        </div>
+        <div style="position:absolute;right:0;bottom:0;">
+            <div style="position: absolute;width: 15px;height: 5px;background: #fff;right:0;bottom:0;"></div>
+            <div style="position: absolute;right: 0;bottom: 0;width: 5px;height: 15px;background:#fff;"></div>
+        </div>
+    </div>
+    <!-- 右上，坐下 -->
+    <div style="width: 300px;height: 180px;margin:100px;position: relative;">
+        <div style="position:absolute;right:0;top:0;">
+            <div style="position: absolute;width: 15px;height: 5px;background: #fff;right:0;top:0;"></div>
+            <div style="position: absolute;right: 0;top: 0;width: 5px;height: 15px;background:#fff;"></div>
+        </div>
+        <div style="position:absolute;left:0;bottom:0;">
+            <div style="position: absolute;width: 15px;height: 5px;background: #fff;left:0;bottom:0;"></div>
+            <div style="position: absolute;left: 0;bottom: 0;width: 5px;height: 15px;background:#fff;"></div>
+        </div>
+    </div>
+    <!-- 标题 -->
+    <div style="width: 300px;height: 180px;margin:100px;position: relative;">
+        <div style="position:absolute;left:50%;top:0;transform: translate(-50%,-50%);border:1px solid #ddd;color:#fff;background:#3B5064;">标题</div>
+    </div>
+    <!-- 边框 -->
+    <div style="width: 300px;height: 180px;margin:100px;position: relative;"></div>
+
+    <div id="test">
+        <test :colorf="#00f" :backgroundf="backgroundf"></test>
+    </div>
+    <script src="../static/javascripts/vue.min.js"></script>
+    <script>
+        var templates = Vue.extend({
+            template:`<div style="color:#0f0">{{msg}}<div :style="{color:colorf,backgroundColor:backgroundf}">span测试{{colorf}}</div></div>`,
+            data:function(){
+                return {msg:'测试'}
+            },
+            props:['colorf','backgroundf']
+        });
+        var testApp = new Vue({
+            el:"#test",
+            data:{
+                name:'张三',
+                color:'#00f',
+                backgroundf:'#ff0'
+            },
+            components:{
+                test:templates
+            }
+        })
+    </script>
+    <script>
+        
+    </script>
+</body>
